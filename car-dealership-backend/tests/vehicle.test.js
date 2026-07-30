@@ -1064,16 +1064,65 @@ expect(response.body).toEqual({
 
 test("should return all available vehicles when no search filters are provided", async () => {
 
-    const token = generateToken(customerId, "Customer");
+    const hashedPassword = await bcrypt.hash("password123", 10);
 
-    await connection.query(`
-        INSERT INTO vehicles
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password)
+         VALUES (?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+    await connection.query(
+        `INSERT INTO vehicles
         (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
         VALUES
-        ('Toyota', 'Fortuner', 2024, 4200000, 'Black', 'Diesel', 'Automatic', 5, ?),
-        ('Hyundai', 'Creta', 2023, 1800000, 'White', 'Petrol', 'Manual', 3, ?),
-        ('Honda', 'City', 2022, 1500000, 'Silver', 'Petrol', 'Manual', 0, ?)
-    `, [adminId, adminId, adminId]);
+        (?, ?, ?, ?, ?, ?, ?, ?, ?),
+        (?, ?, ?, ?, ?, ?, ?, ?, ?),
+        (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            "Toyota",
+            "Fortuner",
+            2024,
+            4200000,
+            "Black",
+            "Diesel",
+            "Automatic",
+            5,
+            customer.insertId,
+
+            "Hyundai",
+            "Creta",
+            2023,
+            1800000,
+            "White",
+            "Petrol",
+            "Manual",
+            3,
+            customer.insertId,
+
+            "Honda",
+            "City",
+            2022,
+            1500000,
+            "Silver",
+            "Petrol",
+            "Manual",
+            0,
+            customer.insertId
+        ]
+    );
 
     const response = await request(app)
         .get("/api/vehicles/search")
@@ -1085,5 +1134,6 @@ test("should return all available vehicles when no search filters are provided",
 
     expect(response.body[0].brand).toBe("Hyundai");
     expect(response.body[1].brand).toBe("Toyota");
+
 });
 });
