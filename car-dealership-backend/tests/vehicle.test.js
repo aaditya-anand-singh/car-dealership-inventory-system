@@ -697,4 +697,36 @@ test("should allow admin to view vehicles", async () => {
 
 });
 
+
+test("should return an empty array when no vehicles are available", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password)
+         VALUES (?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+    const response = await request(app)
+        .get("/api/vehicles")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toEqual([]);
+
+});
+
 });
