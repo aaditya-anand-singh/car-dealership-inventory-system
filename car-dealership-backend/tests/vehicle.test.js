@@ -410,4 +410,62 @@ test("should return 400 if stock is missing", async () => {
 
 });
 
+test("should return 409 if vehicle already exists", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [admin] = await connection.query(
+        `INSERT INTO users(username,email,password,role)
+         VALUES(?,?,?,?)`,
+        [
+            `admin_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword,
+            "admin"
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: admin.insertId,
+            role: "admin"
+        },
+        process.env.JWT_SECRET
+    );
+
+    // Create the vehicle for the first time
+    await request(app)
+        .post("/api/vehicles")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+            brand: "Toyota",
+            model: "Fortuner",
+            year: 2024,
+            price: 4200000,
+            color: "Black",
+            fuelType: "Diesel",
+            transmission: "Automatic",
+            stock: 5
+        });
+
+    // Try creating the same vehicle again
+    const response = await request(app)
+        .post("/api/vehicles")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+            brand: "Toyota",
+            model: "Fortuner",
+            year: 2024,
+            price: 4500000,
+            color: "White",
+            fuelType: "Diesel",
+            transmission: "Automatic",
+            stock: 10
+        });
+
+    expect(response.statusCode).toBe(409);
+    expect(response.body.message).toBe("Vehicle already exists");
+
+});
+
 });
