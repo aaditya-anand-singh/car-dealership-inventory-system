@@ -1942,4 +1942,39 @@ test("should return 403 if customer tries to delete vehicle", async () => {
 
 });
 
+test("should return 404 if vehicle does not exist", async () => {
+
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+
+    const [admin] = await connection.query(
+        `INSERT INTO users(username, email, password, role)
+         VALUES (?, ?, ?, ?)`,
+        [
+            `admin_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword,
+            "admin"
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: admin.insertId,
+            role: "admin"
+        },
+        process.env.JWT_SECRET
+    );
+
+    const response = await request(app)
+        .delete("/api/vehicles/99999")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(404);
+
+    expect(response.body).toEqual({
+        message: "Vehicle not found."
+    });
+
+});
+
 });

@@ -7,7 +7,8 @@ const connection = require("../config/db");
 
 const {
     searchVehicles,
-    updateVehicle
+    updateVehicle,
+    deleteVehicle
 } = require("../controllers/vehicle.controller");
 
 // ===========================
@@ -192,11 +193,7 @@ router.delete(
     "/:id",
     verifyToken,
     isAdmin,
-    async (req, res) => {
-        return res.status(200).json({
-            message: "Temporary"
-        });
-    }
+    deleteVehicle
 );
 
 module.exports = router;
