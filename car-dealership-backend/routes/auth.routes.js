@@ -1,7 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const connection = require("../config/db");
-
+const jwt = require("jsonwebtoken");
 const router = express.Router();
 
 // ========================= REGISTER =========================
@@ -126,10 +126,17 @@ if (!isMatch) {
     });
 }
 
-return res.status(200).json({
-    message: "Login successful"
-});
+const token = jwt.sign(
+    {
+        id: user.id
+    },
+    "secretkey"
+);
 
+return res.status(200).json({
+    message: "Login successful",
+    token
+});
     } catch (err) {
 
         console.error("Login Error:", err);
