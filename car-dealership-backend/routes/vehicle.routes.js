@@ -206,6 +206,7 @@ router.post(
 router.post(
     "/:id/restock",
     verifyToken,
+    isAdmin,
     async (req, res) => {
 
         return res.status(200).json({

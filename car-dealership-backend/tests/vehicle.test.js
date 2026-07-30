@@ -2406,4 +2406,50 @@ describe("POST /api/vehicles/:id/restock", () => {
 
     });
 
+    test("should return 403 if customer tries to restock vehicle", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password, role)
+         VALUES (?, ?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword,
+            "customer"
+        ]
+    );
+
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+
+    const response = await request(app)
+        .post("/api/vehicles/1/restock")
+        .set(
+            "Authorization",
+            `Bearer ${token}`
+        )
+        .send({
+            quantity: 10
+        });
+
+
+    expect(response.statusCode).toBe(403);
+
+
+    expect(response.body).toEqual({
+        message: "Access denied. Admins only."
+    });
+
+});
+
 });
