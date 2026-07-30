@@ -184,7 +184,6 @@ const purchaseVehicle = async (req, res) => {
 
         const { id } = req.params;
 
-
         const [vehicle] = await connection.query(
             "SELECT * FROM vehicles WHERE id = ?",
             [id]
@@ -207,6 +206,19 @@ const purchaseVehicle = async (req, res) => {
             });
 
         }
+
+
+        await connection.query(
+            `UPDATE vehicles
+             SET stock = stock - 1
+             WHERE id = ?`,
+            [id]
+        );
+
+
+        return res.status(200).json({
+            message: "Vehicle purchased successfully."
+        });
 
 
     } catch (error) {

@@ -2241,4 +2241,74 @@ test("should return 400 if vehicle is out of stock", async () => {
     });
 
 });
+
+test("should purchase vehicle successfully and decrease stock", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password, role)
+         VALUES (?, ?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword,
+            "customer"
+        ]
+    );
+
+
+    const [vehicle] = await connection.query(
+        `INSERT INTO vehicles
+        (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            "Toyota",
+            "Fortuner",
+            2024,
+            4200000,
+            "Black",
+            "Diesel",
+            "Automatic",
+            5,
+            customer.insertId
+        ]
+    );
+
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+
+    const response = await request(app)
+        .post(`/api/vehicles/${vehicle.insertId}/purchase`)
+        .set(
+            "Authorization",
+            `Bearer ${token}`
+        );
+
+
+    expect(response.statusCode).toBe(200);
+
+
+    expect(response.body).toEqual({
+        message: "Vehicle purchased successfully."
+    });
+
+
+    const [updatedVehicle] = await connection.query(
+        "SELECT stock FROM vehicles WHERE id = ?",
+        [vehicle.insertId]
+    );
+
+
+    expect(updatedVehicle[0].stock).toBe(4);
+
+});
 });
