@@ -625,4 +625,15 @@ describe("GET /api/vehicles", () => {
 
     });
 
+    test("should return 401 if token is invalid", async () => {
+
+    const response = await request(app)
+        .get("/api/vehicles")
+        .set("Authorization", "Bearer invalidtoken");
+
+    expect(response.statusCode).toBe(401);
+    expect(response.body.message).toBe("Invalid token.");
+
+});
+
 });
