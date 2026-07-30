@@ -86,8 +86,34 @@ test("should return 409 when username already exists", async () => {
     expect(response.body.message).toBe("Username already exists");
 
 });
-test("should save a new user in database", async () => {
+    test("should save a new user in database", async () => {
 
+        await connection.query(
+            "DELETE FROM users WHERE username=?",
+            ["Aaditya"]
+        );
+
+        await request(app)
+            .post("/api/auth/register")
+            .send({
+                username: "Aaditya",
+                email: "aaditya@gmail.com",
+                password: "password123"
+            });
+
+        const [rows] = await connection.query(
+            "SELECT * FROM users WHERE username=?",
+            ["Aaditya"]
+        );
+
+        expect(rows.length).toBe(1);
+
+    });
+
+
+    test("should return 409 when email already exists", async () => {
+
+    // First registration
     await request(app)
         .post("/api/auth/register")
         .send({
@@ -96,11 +122,17 @@ test("should save a new user in database", async () => {
             password: "password123"
         });
 
-    const [rows] = await connection.query(
-        "SELECT * FROM users WHERE username = ?",
-        ["Aaditya"]
-    );
+    // Second registration with different username but same email
+    const response = await request(app)
+        .post("/api/auth/register")
+        .send({
+            username: "Rahul",
+            email: "aaditya@gmail.com",
+            password: "password123"
+        });
 
-    expect(rows.length).toBe(1);
+    expect(response.statusCode).toBe(409);
+    expect(response.body.message).toBe("Email already exists");
+
 });
 });

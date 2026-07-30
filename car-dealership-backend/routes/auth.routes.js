@@ -1,38 +1,71 @@
 const express = require("express");
+const connection = require("../config/db");
 
 const router = express.Router();
 
-router.post("/register", (req, res) => {
+router.post("/register", async (req, res) => {
 
-    const { username, email, password } = req.body;
+    try {
 
-    if (!username) {
-        return res.status(400).json({
-            message: "Username is required"
+        const { username, email, password } = req.body;
+
+        // Validation
+        if (!username) {
+            return res.status(400).json({
+                message: "Username is required"
+            });
+        }
+
+        if (!email) {
+            return res.status(400).json({
+                message: "Email is required"
+            });
+        }
+
+        if (!password) {
+            return res.status(400).json({
+                message: "Password is required"
+            });
+        }
+
+        if (!email.includes("@")) {
+            return res.status(400).json({
+                message: "Invalid email format"
+            });
+        }
+
+        // Check duplicate username
+        const [existingUser] = await connection.query(
+            "SELECT * FROM users WHERE username = ?",
+            [username]
+        );
+
+        if (existingUser.length > 0) {
+            return res.status(409).json({
+                message: "Username already exists"
+            });
+        }
+
+        // Insert user
+        await connection.query(
+            "INSERT INTO users(username,email,password) VALUES(?,?,?)",
+            [username, email, password]
+        );
+
+        return res.status(201).json({
+            message: "User registered successfully"
         });
+
+    } catch (err) {
+
+        console.error(err);
+
+        return res.status(500).json({
+            message: "Internal Server Error"
+        });
+
     }
 
-    if (!email) {
-        return res.status(400).json({
-            message: "Email is required"
-        });
-    }
-
-    if (!password) {
-        return res.status(400).json({
-            message: "Password is required"
-        });
-    }
-
-    if (!email.includes("@")) {
-        return res.status(400).json({
-            message: "Invalid email format"
-        });
-    }
-
-    res.status(201).json({
-        message: "User registered successfully"
-    });
 });
 
 module.exports = router;
