@@ -1494,4 +1494,53 @@ test("should return an empty array when no vehicles match the search criteria", 
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual([]);
 });
+
+test("should perform case-insensitive brand search", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password)
+         VALUES (?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+    await connection.query(
+        `INSERT INTO vehicles
+        (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            "Toyota",
+            "Camry",
+            2024,
+            2500000,
+            "Black",
+            "Petrol",
+            "Automatic",
+            5,
+            customer.insertId
+        ]
+    );
+
+    const response = await request(app)
+        .get("/api/vehicles/search?brand=toyota")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toHaveLength(1);
+
+    expect(response.body[0].brand).toBe("Toyota");
+});
 });
