@@ -612,3 +612,17 @@ test("should return 400 if stock is negative", async () => {
 });
 
 });
+
+describe("GET /api/vehicles", () => {
+
+    test("should return 401 if token is missing", async () => {
+
+        const response = await request(app)
+            .get("/api/vehicles");
+
+        expect(response.statusCode).toBe(401);
+        expect(response.body.message).toBe("Access denied. No token provided.");
+
+    });
+
+});

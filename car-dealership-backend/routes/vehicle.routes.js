@@ -124,4 +124,6 @@ if (stock < 0) {
     }
 );
 
+router.post("/")
+
 module.exports = router;

@@ -34,7 +34,7 @@ describe("POST /api/auth/login", () => {
 
     });
 
-});
+
 
 test("should return 400 when email is missing", async () => {
 
@@ -240,6 +240,5 @@ test("should return user role on successful login", async () => {
 
 });
 
-afterAll(async () => {
-    await connection.end();
+
 });
