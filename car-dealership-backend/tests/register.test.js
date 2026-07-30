@@ -1,6 +1,7 @@
 const request = require("supertest");
-const app = require("../app");
+const bcrypt = require("bcrypt");
 const connection = require("../config/db");
+const app = require("../app");
 
 describe("POST /api/auth/register", () => {
     test("should register a new user successfully", async () => {
@@ -133,6 +134,41 @@ test("should return 409 when username already exists", async () => {
 
     expect(response.statusCode).toBe(409);
     expect(response.body.message).toBe("Email already exists");
+
+});
+
+
+test("should store hashed password in database", async () => {
+
+    const username = `user_${Date.now()}`;
+    const email = `${Date.now()}@gmail.com`;
+    const password = "password123";
+
+    await request(app)
+        .post("/api/auth/register")
+        .send({
+            username,
+            email,
+            password
+        });
+
+    const [rows] = await connection.query(
+        "SELECT password FROM users WHERE username = ?",
+        [username]
+    );
+
+    expect(rows.length).toBe(1);
+
+    // Password should not be stored as plain text
+    expect(rows[0].password).not.toBe(password);
+
+    // Hash should match the original password
+    const isMatch = await bcrypt.compare(
+        password,
+        rows[0].password
+    );
+
+    expect(isMatch).toBe(true);
 
 });
 });
