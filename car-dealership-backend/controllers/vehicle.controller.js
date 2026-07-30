@@ -71,6 +71,31 @@ const searchVehicles = async (req, res) => {
 
 const updateVehicle = async (req, res) => {
 
+    try {
+
+        const { id } = req.params;
+
+        const [vehicle] = await connection.query(
+            `SELECT id
+             FROM vehicles
+             WHERE id = ?`,
+            [id]
+        );
+
+        if (vehicle.length === 0) {
+            return res.status(404).json({
+                message: "Vehicle not found."
+            });
+        }
+
+    } catch (error) {
+
+        return res.status(500).json({
+            message: "Internal server error."
+        });
+
+    }
+
 };
 
 module.exports = {
