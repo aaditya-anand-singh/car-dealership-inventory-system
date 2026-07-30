@@ -1668,4 +1668,48 @@ describe("PUT /api/vehicles/:id", () => {
 
 });
 
+test("should return 403 if user is not an admin", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password)
+         VALUES (?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+    const response = await request(app)
+        .put("/api/vehicles/1")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+            brand: "Toyota",
+            model: "Camry",
+            year: 2024,
+            price: 3000000,
+            color: "Black",
+            fuelType: "Petrol",
+            transmission: "Automatic",
+            stock: 5
+        });
+
+    expect(response.statusCode).toBe(403);
+
+    expect(response.body).toEqual({
+        message: "Access denied. Admins only."
+    });
+
+});
+
 });
