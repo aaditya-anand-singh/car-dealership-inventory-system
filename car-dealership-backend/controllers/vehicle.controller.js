@@ -1,29 +1,18 @@
 const connection = require("../config/db");
 
-const searchVehicles = async (req, res) => {
+const searchVehicles = async (req,res)=>{
 
-    try {
+    try{
 
-        const { brand, model, minPrice, maxPrice } = req.query;
+        const {
+            keyword,
+            fuelType,
+            transmission,
+            minPrice,
+            maxPrice
+        } = req.query;
 
-        if (
-            (minPrice && isNaN(Number(minPrice))) ||
-            (maxPrice && isNaN(Number(maxPrice)))
-        ) {
-            return res.status(400).json({
-                message: "Price values must be valid numbers."
-            });
-        }
-
-        if (
-            minPrice &&
-            maxPrice &&
-            Number(minPrice) > Number(maxPrice)
-        ) {
-            return res.status(400).json({
-                message: "Minimum price cannot be greater than maximum price."
-            });
-        }
+        console.log("SEARCH QUERY:", req.query);
 
         let sql = `
             SELECT *
@@ -31,38 +20,101 @@ const searchVehicles = async (req, res) => {
             WHERE stock > 0
         `;
 
-        const values = [];
 
-        if (brand) {
-            sql += ` AND brand = ?`;
-            values.push(brand);
+        let values=[];
+
+
+
+        if(keyword){
+
+            sql += `
+            AND (
+                brand LIKE ?
+                OR model LIKE ?
+            )
+            `;
+
+            values.push(
+                `%${keyword}%`,
+                `%${keyword}%`
+            );
+
         }
 
-        if (model) {
-            sql += ` AND model = ?`;
-            values.push(model);
+
+
+        if(fuelType){
+
+            sql += `
+            AND fuelType = ?
+            `;
+
+            values.push(fuelType);
+
         }
 
-        if (minPrice) {
-            sql += ` AND price >= ?`;
-            values.push(Number(minPrice));
+
+
+        if(transmission){
+
+            sql += `
+            AND transmission = ?
+            `;
+
+            values.push(transmission);
+
         }
 
-        if (maxPrice) {
-            sql += ` AND price <= ?`;
-            values.push(Number(maxPrice));
+
+
+        if(minPrice){
+
+            sql += `
+            AND price >= ?
+            `;
+
+            values.push(minPrice);
+
         }
 
-        sql += ` ORDER BY brand ASC`;
 
-        const [vehicles] = await connection.query(sql, values);
+
+        if(maxPrice){
+
+            sql += `
+            AND price <= ?
+            `;
+
+            values.push(maxPrice);
+
+        }
+
+
+
+        sql += `
+        ORDER BY brand ASC
+        `;
+
+
+        console.log("SQL QUERY:", sql);
+console.log("VALUES:", values);
+        const [vehicles] = await connection.query(
+            sql,
+            values
+        );
+
 
         return res.status(200).json(vehicles);
 
-    } catch (error) {
+
+
+    }
+    catch(error){
+
+        console.log(error);
 
         return res.status(500).json({
-            message: "Internal server error."
+            message:"Internal server error"
         });
 
     }

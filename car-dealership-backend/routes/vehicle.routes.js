@@ -148,21 +148,68 @@ router.get(
 
         try {
 
+            const page = Number(req.query.page) || 1;
+            const limit = Number(req.query.limit) || 10;
+
+
+            const offset = (page - 1) * limit;
+
+
+
             const [vehicles] = await connection.query(
                 `SELECT *
                  FROM vehicles
                  WHERE stock > 0
-                 ORDER BY brand ASC`
+                 ORDER BY brand ASC
+                 LIMIT ? OFFSET ?`,
+                [
+                    limit,
+                    offset
+                ]
             );
 
-            return res.status(200).json(vehicles);
 
-        } catch (err) {
 
-            console.error("Get Vehicles Error:", err);
+            const [countResult] = await connection.query(
+                `SELECT COUNT(*) AS total
+                 FROM vehicles
+                 WHERE stock > 0`
+            );
+
+
+            const totalVehicles = countResult[0].total;
+
+
+            res.set(
+    "X-Total-Count",
+    totalVehicles
+);
+
+
+res.set(
+    "X-Current-Page",
+    page
+);
+
+
+res.set(
+    "X-Total-Pages",
+    Math.ceil(totalVehicles / limit)
+);
+
+
+return res.status(200).json(vehicles);
+
+
+
+        } catch(error) {
+
+            console.error(error);
 
             return res.status(500).json({
-                message: "Internal Server Error"
+
+                message:"Internal Server Error"
+
             });
 
         }
