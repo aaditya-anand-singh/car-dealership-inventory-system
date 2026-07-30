@@ -14,9 +14,14 @@ function verifyToken(req, res, next) {
 
     try {
 
-        jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(
+    token,
+    process.env.JWT_SECRET
+);
 
-        next();
+req.user = decoded;
+
+next();
 
     } catch (err) {
 
