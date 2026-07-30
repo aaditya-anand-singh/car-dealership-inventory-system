@@ -32,6 +32,19 @@ describe("POST /api/auth/login", () => {
 
 });
 
+test("should return 400 when email is missing", async () => {
+
+    const response = await request(app)
+        .post("/api/auth/login")
+        .send({
+            password: "password123"
+        });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.message).toBe("Email is required");
+
+});
+
 afterAll(async () => {
     await connection.end();
 });
