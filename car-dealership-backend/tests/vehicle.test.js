@@ -1213,4 +1213,77 @@ test("should return vehicles matching the brand", async () => {
     expect(response.body[0].brand).toBe("Toyota");
     expect(response.body[1].brand).toBe("Toyota");
 });
+
+test("should return vehicles matching the model", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password)
+         VALUES (?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+    await connection.query(
+        `INSERT INTO vehicles
+        (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+        VALUES
+        (?, ?, ?, ?, ?, ?, ?, ?, ?),
+        (?, ?, ?, ?, ?, ?, ?, ?, ?),
+        (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            "Toyota",
+            "Camry",
+            2024,
+            4200000,
+            "Black",
+            "Diesel",
+            "Automatic",
+            5,
+            customer.insertId,
+
+            "Honda",
+            "City",
+            2023,
+            1800000,
+            "White",
+            "Petrol",
+            "Manual",
+            3,
+            customer.insertId,
+
+            "Hyundai",
+            "Creta",
+            2022,
+            1500000,
+            "Silver",
+            "Petrol",
+            "Manual",
+            4,
+            customer.insertId
+        ]
+    );
+
+    const response = await request(app)
+        .get("/api/vehicles/search?model=City")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toHaveLength(1);
+
+    expect(response.body[0].brand).toBe("Honda");
+    expect(response.body[0].model).toBe("City");
+});
 });
