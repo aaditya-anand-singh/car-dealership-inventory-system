@@ -74,4 +74,34 @@ test("should allow request with valid token", async () => {
     expect(response.body.message).toBe("Vehicle route reached");
 
 });
+
+test("should attach decoded user to request", async () => {
+
+    const token = jwt.sign(
+        {
+            id: 25,
+            role: "admin"
+        },
+        process.env.JWT_SECRET
+    );
+
+    const response = await request(app)
+        .post("/api/vehicles")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+            brand: "Toyota",
+            model: "Fortuner",
+            year: 2024,
+            price: 4200000,
+            color: "Black",
+            fuelType: "Diesel",
+            transmission: "Automatic",
+            stock: 5
+        });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.user.id).toBe(25);
+    expect(response.body.user.role).toBe("admin");
+
+});
 });
