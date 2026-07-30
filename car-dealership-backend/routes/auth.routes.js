@@ -12,6 +12,12 @@ router.post("/register", (req, res) => {
         });
     }
 
+    if (!email) {
+        return res.status(400).json({
+            message: "Email is required"
+        });
+    }
+
     res.status(201).json({
         message: "User registered successfully"
     });
