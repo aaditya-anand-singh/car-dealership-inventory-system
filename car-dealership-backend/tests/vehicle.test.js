@@ -2119,4 +2119,23 @@ describe("POST /api/vehicles/:id/purchase", () => {
 
     });
 
+    test("should return 401 if token is invalid", async () => {
+
+    const response = await request(app)
+        .post("/api/vehicles/1/purchase")
+        .set(
+            "Authorization",
+            "Bearer invalidToken"
+        );
+
+
+    expect(response.statusCode).toBe(401);
+
+
+    expect(response.body).toEqual({
+        message: "Invalid token."
+    });
+
+});
+
 });
