@@ -49,4 +49,17 @@ test("should return 400 when password is missing", async () => {
     expect(response.statusCode).toBe(400);
     expect(response.body.message).toBe("Password is required");
 });
+
+test("should return 400 when email format is invalid", async () => {
+    const response = await request(app)
+        .post("/api/auth/register")
+        .send({
+            username: "Aaditya",
+            email: "aadityagmail.com",
+            password: "password123"
+        });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.message).toBe("Invalid email format");
+});
 });
