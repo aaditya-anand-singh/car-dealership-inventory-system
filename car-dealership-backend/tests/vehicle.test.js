@@ -1712,4 +1712,49 @@ test("should return 403 if user is not an admin", async () => {
 
 });
 
+test("should return 404 if vehicle does not exist", async () => {
+
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+
+    const [admin] = await connection.query(
+        `INSERT INTO users(username, email, password, role)
+         VALUES (?, ?, ?, ?)`,
+        [
+            `admin_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword,
+            "admin"
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: admin.insertId,
+            role: "admin"
+        },
+        process.env.JWT_SECRET
+    );
+
+    const response = await request(app)
+        .put("/api/vehicles/99999")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+            brand: "Toyota",
+            model: "Camry",
+            year: 2024,
+            price: 3200000,
+            color: "White",
+            fuelType: "Petrol",
+            transmission: "Automatic",
+            stock: 5
+        });
+
+    expect(response.statusCode).toBe(404);
+
+    expect(response.body).toEqual({
+        message: "Vehicle not found."
+    });
+
+});
+
 });
