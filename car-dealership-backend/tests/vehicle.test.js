@@ -1872,3 +1872,21 @@ test("should update vehicle successfully", async () => {
 
 });
 });
+
+
+describe("DELETE /api/vehicles/:id", () => {
+
+    test("should return 401 if token is not provided", async () => {
+
+        const response = await request(app)
+            .delete("/api/vehicles/1");
+
+        expect(response.statusCode).toBe(401);
+
+        expect(response.body.message).toBe(
+            "Access denied. No token provided."
+        );
+
+    });
+
+});
