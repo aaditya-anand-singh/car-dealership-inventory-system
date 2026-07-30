@@ -270,6 +270,22 @@ const restockVehicle = async (req, res) => {
         }
 
 
+        await connection.query(
+            `UPDATE vehicles
+             SET stock = stock + ?
+             WHERE id = ?`,
+            [
+                quantity,
+                id
+            ]
+        );
+
+
+        return res.status(200).json({
+            message: "Vehicle restocked successfully."
+        });
+
+
     } catch (error) {
 
         console.error(error);
