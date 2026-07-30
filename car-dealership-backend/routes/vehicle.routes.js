@@ -9,7 +9,8 @@ const {
     searchVehicles,
     updateVehicle,
     deleteVehicle,
-    purchaseVehicle
+    purchaseVehicle,
+    restockVehicle
 } = require("../controllers/vehicle.controller");
 
 // ===========================
@@ -207,12 +208,6 @@ router.post(
     "/:id/restock",
     verifyToken,
     isAdmin,
-    async (req, res) => {
-
-        return res.status(200).json({
-            message: "Restock route working"
-        });
-
-    }
+    restockVehicle
 );
 module.exports = router;
