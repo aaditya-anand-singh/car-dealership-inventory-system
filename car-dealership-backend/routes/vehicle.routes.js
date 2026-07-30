@@ -138,7 +138,8 @@ router.get(
             const [vehicles] = await connection.query(
                 `SELECT *
                  FROM vehicles
-                 WHERE stock > 0`
+                 WHERE stock > 0
+                 ORDER BY brand ASC`
             );
 
             return res.status(200).json(vehicles);
