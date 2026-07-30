@@ -47,6 +47,12 @@ if (!price) {
     });
 }
 
+if (!fuelType) {
+    return res.status(400).json({
+        message: "Fuel type is required"
+    });
+}
+
 await connection.query(
     `INSERT INTO vehicles
     (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
