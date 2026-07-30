@@ -5,7 +5,10 @@ const bcrypt = require("bcrypt");
 const connection = require("../config/db");
 
 describe("POST /api/vehicles", () => {
-
+     beforeEach(async () => {
+    await connection.query("DELETE FROM vehicles");
+    await connection.query("DELETE FROM users");
+});
     test("should return 401 if no token is provided", async () => {
 
         const response = await request(app)
