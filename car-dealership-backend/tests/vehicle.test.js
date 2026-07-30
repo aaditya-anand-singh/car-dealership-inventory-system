@@ -2138,4 +2138,46 @@ describe("POST /api/vehicles/:id/purchase", () => {
 
 });
 
+test("should return 404 if vehicle does not exist", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password, role)
+         VALUES (?, ?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword,
+            "customer"
+        ]
+    );
+
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+
+    const response = await request(app)
+        .post("/api/vehicles/99999/purchase")
+        .set(
+            "Authorization",
+            `Bearer ${token}`
+        );
+
+
+    expect(response.statusCode).toBe(404);
+
+
+    expect(response.body).toEqual({
+        message: "Vehicle not found."
+    });
+
+});
+
 });
