@@ -1,108 +1,121 @@
 const express = require("express");
 const router = express.Router();
 
-
 const verifyToken = require("../middleware/auth.middleware");
 const isAdmin = require("../middleware/admin.middleware");
-
 const connection = require("../config/db");
+
 router.post(
     "/",
     verifyToken,
     isAdmin,
     async (req, res) => {
 
-const {
-    brand,
-    model,
-    year,
-    price,
-    color,
-    fuelType,
-    transmission,
-    stock
-} = req.body;
+        try {
 
-if (!brand) {
-    return res.status(400).json({
-        message: "Brand is required"
-    });
-}
+            const {
+                brand,
+                model,
+                year,
+                price,
+                color,
+                fuelType,
+                transmission,
+                stock
+            } = req.body;
 
-if (!model) {
-    return res.status(400).json({
-        message: "Model is required"
-    });
-}
+            if (!brand) {
+                return res.status(400).json({
+                    message: "Brand is required"
+                });
+            }
 
-if (!year) {
-    return res.status(400).json({
-        message: "Year is required"
-    });
-}
+            if (!model) {
+                return res.status(400).json({
+                    message: "Model is required"
+                });
+            }
 
-if (!price) {
-    return res.status(400).json({
-        message: "Price is required"
-    });
-}
+            if (!year) {
+                return res.status(400).json({
+                    message: "Year is required"
+                });
+            }
 
-if (!fuelType) {
-    return res.status(400).json({
-        message: "Fuel type is required"
-    });
-}
+            if (price === undefined || price === null) {
+                return res.status(400).json({
+                    message: "Price is required"
+                });
+            }
 
-if (!transmission) {
-    return res.status(400).json({
-        message: "Transmission is required"
-    });
-}
+            if (price <= 0) {
+                return res.status(400).json({
+                    message: "Price must be greater than 0"
+                });
+            }
 
-if (!stock && stock !== 0) {
-    return res.status(400).json({
-        message: "Stock is required"
-    });
-}
+            if (!fuelType) {
+                return res.status(400).json({
+                    message: "Fuel type is required"
+                });
+            }
 
-// Duplicate check
-const [existingVehicle] = await connection.query(
-    `SELECT id FROM vehicles
-     WHERE brand = ? AND model = ? AND year = ?`,
-    [brand, model, year]
-);
+            if (!transmission) {
+                return res.status(400).json({
+                    message: "Transmission is required"
+                });
+            }
 
-if (existingVehicle.length > 0) {
-    return res.status(409).json({
-        message: "Vehicle already exists"
-    });
-}
+            if (stock === undefined || stock === null) {
+                return res.status(400).json({
+                    message: "Stock is required"
+                });
+            }
 
+            // Duplicate check
+            const [existingVehicle] = await connection.query(
+                `SELECT id FROM vehicles
+                 WHERE brand = ? AND model = ? AND year = ?`,
+                [brand, model, year]
+            );
 
-await connection.query(
-    `INSERT INTO vehicles
-    (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-        brand,
-        model,
-        year,
-        price,
-        color,
-        fuelType,
-        transmission,
-        stock,
-        req.user.id
-    ]
-);
+            if (existingVehicle.length > 0) {
+                return res.status(409).json({
+                    message: "Vehicle already exists"
+                });
+            }
 
-        return res.status(201).json({
-            message: "Vehicle added successfully"
-        });
+            await connection.query(
+                `INSERT INTO vehicles
+                (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    brand,
+                    model,
+                    year,
+                    price,
+                    color,
+                    fuelType,
+                    transmission,
+                    stock,
+                    req.user.id
+                ]
+            );
 
+            return res.status(201).json({
+                message: "Vehicle added successfully"
+            });
+
+        } catch (err) {
+
+            console.error("Vehicle Error:", err);
+
+            return res.status(500).json({
+                message: "Internal Server Error"
+            });
+
+        }
     }
 );
-
-
 
 module.exports = router;
