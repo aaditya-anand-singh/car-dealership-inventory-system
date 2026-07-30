@@ -1,6 +1,6 @@
 const express = require("express");
 const connection = require("../config/db");
-
+const bcrypt = require("bcrypt");
 const router = express.Router();
 
 router.post("/register", async (req, res) => {
@@ -58,10 +58,11 @@ router.post("/register", async (req, res) => {
         }
 
         // Insert user
-        await connection.query(
-            "INSERT INTO users(username,email,password) VALUES(?,?,?)",
-            [username, email, password]
-        );
+        const hashedPassword = await bcrypt.hash(password, 10);
+await connection.query(
+    "INSERT INTO users(username,email,password) VALUES(?,?,?)",
+    [username, email, hashedPassword]
+);
 
         return res.status(201).json({
             message: "User registered successfully"
