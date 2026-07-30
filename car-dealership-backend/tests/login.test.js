@@ -58,6 +58,20 @@ test("should return 400 when password is missing", async () => {
 
 });
 
+test("should return 401 when email is not registered", async () => {
+
+    const response = await request(app)
+        .post("/api/auth/login")
+        .send({
+            email: "nouser@gmail.com",
+            password: "password123"
+        });
+
+    expect(response.statusCode).toBe(401);
+    expect(response.body.message).toBe("Invalid email or password");
+
+});
+
 afterAll(async () => {
     await connection.end();
 });
