@@ -967,4 +967,81 @@ test("should return vehicles ordered by brand", async () => {
 
 });
 
+test("should return an empty array when all vehicles are out of stock", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password)
+         VALUES (?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+    await connection.query(
+        `INSERT INTO vehicles
+        (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+        VALUES
+        (?, ?, ?, ?, ?, ?, ?, ?, ?),
+        (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            `Toyota_${Date.now()}`,
+            "Fortuner",
+            2023,
+            4200000,
+            "Black",
+            "Diesel",
+            "Automatic",
+            0,
+            customer.insertId,
+
+            `Hyundai_${Date.now()}`,
+            "Creta",
+            2024,
+            1800000,
+            "White",
+            "Petrol",
+            "Manual",
+            0,
+            customer.insertId
+        ]
+    );
+
+    const response = await request(app)
+        .get("/api/vehicles")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toEqual([]);
+});
+
+});
+
+
+
+describe("GET /api/vehicles/search", () => {
+
+    test("should return 401 if token is missing", async () => {
+
+        const response = await request(app)
+            .get("/api/vehicles/search");
+
+        expect(response.statusCode).toBe(401);
+        expect(response.body).toEqual({
+            message: "Access Denied. No token provided."
+        });
+
+    });
+
 });
