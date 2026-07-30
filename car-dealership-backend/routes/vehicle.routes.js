@@ -4,6 +4,7 @@ const router = express.Router();
 const verifyToken = require("../middleware/auth.middleware");
 const isAdmin = require("../middleware/admin.middleware");
 const connection = require("../config/db");
+const { searchVehicles } = require("../controllers/vehicle.controller");
 
 router.post(
     "/",
@@ -155,6 +156,13 @@ router.get(
         }
 
     }
+);
+
+
+router.get(
+    "/search",
+    verifyToken,
+    searchVehicles
 );
 
 module.exports = router;
