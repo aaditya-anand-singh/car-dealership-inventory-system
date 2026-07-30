@@ -92,6 +92,13 @@ router.post("/login", async (req, res) => {
     });
 }
 
+
+if (!password) {
+    return res.status(400).json({
+        message: "Password is required"
+    });
+}
+
         const [users] = await connection.query(
             "SELECT * FROM users WHERE email = ?",
             [email]
