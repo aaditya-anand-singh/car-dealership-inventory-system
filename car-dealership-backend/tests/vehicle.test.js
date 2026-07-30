@@ -2311,4 +2311,72 @@ test("should purchase vehicle successfully and decrease stock", async () => {
     expect(updatedVehicle[0].stock).toBe(4);
 
 });
+
+test("should not allow purchase when stock is finished", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password, role)
+         VALUES (?, ?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword,
+            "customer"
+        ]
+    );
+
+
+    const [vehicle] = await connection.query(
+        `INSERT INTO vehicles
+        (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            "Hyundai",
+            "Creta",
+            2024,
+            1800000,
+            "White",
+            "Petrol",
+            "Manual",
+            1,
+            customer.insertId
+        ]
+    );
+
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+
+    // First purchase
+    const firstResponse = await request(app)
+        .post(`/api/vehicles/${vehicle.insertId}/purchase`)
+        .set("Authorization", `Bearer ${token}`);
+
+
+    expect(firstResponse.statusCode).toBe(200);
+
+
+    // Second purchase
+    const secondResponse = await request(app)
+        .post(`/api/vehicles/${vehicle.insertId}/purchase`)
+        .set("Authorization", `Bearer ${token}`);
+
+
+    expect(secondResponse.statusCode).toBe(400);
+
+
+    expect(secondResponse.body).toEqual({
+        message: "Vehicle is out of stock."
+    });
+
+});
 });
