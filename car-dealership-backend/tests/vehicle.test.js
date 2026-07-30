@@ -1059,4 +1059,31 @@ expect(response.body).toEqual({
     });
 
 });
+
+
+
+test("should return all available vehicles when no search filters are provided", async () => {
+
+    const token = generateToken(customerId, "Customer");
+
+    await connection.query(`
+        INSERT INTO vehicles
+        (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+        VALUES
+        ('Toyota', 'Fortuner', 2024, 4200000, 'Black', 'Diesel', 'Automatic', 5, ?),
+        ('Hyundai', 'Creta', 2023, 1800000, 'White', 'Petrol', 'Manual', 3, ?),
+        ('Honda', 'City', 2022, 1500000, 'Silver', 'Petrol', 'Manual', 0, ?)
+    `, [adminId, adminId, adminId]);
+
+    const response = await request(app)
+        .get("/api/vehicles/search")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+
+    expect(response.body).toHaveLength(2);
+
+    expect(response.body[0].brand).toBe("Hyundai");
+    expect(response.body[1].brand).toBe("Toyota");
+});
 });
