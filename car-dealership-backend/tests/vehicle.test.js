@@ -104,4 +104,34 @@ test("should attach decoded user to request", async () => {
     expect(response.body.user.role).toBe("admin");
 
 });
+
+
+test("should return 403 if user is not admin", async () => {
+
+    const token = jwt.sign(
+        {
+            id: 1,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+    const response = await request(app)
+        .post("/api/vehicles")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+            brand: "Toyota",
+            model: "Fortuner",
+            year: 2024,
+            price: 4200000,
+            color: "Black",
+            fuelType: "Diesel",
+            transmission: "Automatic",
+            stock: 5
+        });
+
+    expect(response.statusCode).toBe(403);
+    expect(response.body.message).toBe("Access denied. Admins only.");
+
+});
 });
