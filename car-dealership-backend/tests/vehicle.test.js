@@ -2498,4 +2498,68 @@ test("should return 404 if vehicle does not exist", async () => {
 
 });
 
+test("should return 400 if restock quantity is invalid", async () => {
+
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+
+
+    const [admin] = await connection.query(
+        `INSERT INTO users(username, email, password, role)
+         VALUES (?, ?, ?, ?)`,
+        [
+            `admin_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword,
+            "admin"
+        ]
+    );
+
+
+    const [vehicle] = await connection.query(
+        `INSERT INTO vehicles
+        (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            "Toyota",
+            "Innova",
+            2024,
+            2500000,
+            "Black",
+            "Diesel",
+            "Automatic",
+            5,
+            admin.insertId
+        ]
+    );
+
+
+    const token = jwt.sign(
+        {
+            id: admin.insertId,
+            role: "admin"
+        },
+        process.env.JWT_SECRET
+    );
+
+
+    const response = await request(app)
+        .post(`/api/vehicles/${vehicle.insertId}/restock`)
+        .set(
+            "Authorization",
+            `Bearer ${token}`
+        )
+        .send({
+            quantity: 0
+        });
+
+
+    expect(response.statusCode).toBe(400);
+
+
+    expect(response.body).toEqual({
+        message: "Quantity must be greater than 0."
+    });
+
+});
+
 });
