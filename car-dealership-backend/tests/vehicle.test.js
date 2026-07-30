@@ -1,6 +1,7 @@
 const request = require("supertest");
 const app = require("../app");
 const jwt = require("jsonwebtoken");
+const connection = require("../config/db");
 
 describe("POST /api/vehicles", () => {
 
@@ -162,6 +163,36 @@ test("should allow admin user to access protected route", async () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body.message).toBe("Vehicle route reached");
+
+});
+
+
+test("should create a new vehicle successfully", async () => {
+
+    const token = jwt.sign(
+        {
+            id: 1,
+            role: "admin"
+        },
+        process.env.JWT_SECRET
+    );
+
+    const response = await request(app)
+        .post("/api/vehicles")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+            brand: "Toyota",
+            model: "Fortuner",
+            year: 2024,
+            price: 4200000,
+            color: "Black",
+            fuelType: "Diesel",
+            transmission: "Automatic",
+            stock: 5
+        });
+
+    expect(response.statusCode).toBe(201);
+    expect(response.body.message).toBe("Vehicle added successfully");
 
 });
 
