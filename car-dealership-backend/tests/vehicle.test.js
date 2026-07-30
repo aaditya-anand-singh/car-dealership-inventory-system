@@ -2180,4 +2180,65 @@ test("should return 404 if vehicle does not exist", async () => {
 
 });
 
+
+test("should return 400 if vehicle is out of stock", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password, role)
+         VALUES (?, ?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword,
+            "customer"
+        ]
+    );
+
+
+    const [vehicle] = await connection.query(
+        `INSERT INTO vehicles
+        (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            "Honda",
+            "City",
+            2024,
+            1500000,
+            "White",
+            "Petrol",
+            "Manual",
+            0,
+            customer.insertId
+        ]
+    );
+
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+
+    const response = await request(app)
+        .post(`/api/vehicles/${vehicle.insertId}/purchase`)
+        .set(
+            "Authorization",
+            `Bearer ${token}`
+        );
+
+
+    expect(response.statusCode).toBe(400);
+
+
+    expect(response.body).toEqual({
+        message: "Vehicle is out of stock."
+    });
+
+});
 });
