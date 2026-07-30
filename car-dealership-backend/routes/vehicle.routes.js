@@ -12,33 +12,39 @@ router.post(
     isAdmin,
     async (req, res) => {
 
-        const {
-            brand,
-            model,
-            year,
-            price,
-            color,
-            fuelType,
-            transmission,
-            stock
-        } = req.body;
+const {
+    brand,
+    model,
+    year,
+    price,
+    color,
+    fuelType,
+    transmission,
+    stock
+} = req.body;
 
-        await connection.query(
-            `INSERT INTO vehicles
-            (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                brand,
-                model,
-                year,
-                price,
-                color,
-                fuelType,
-                transmission,
-                stock,
-                req.user.id
-            ]
-        );
+if (!brand) {
+    return res.status(400).json({
+        message: "Brand is required"
+    });
+}
+
+await connection.query(
+    `INSERT INTO vehicles
+    (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+        brand,
+        model,
+        year,
+        price,
+        color,
+        fuelType,
+        transmission,
+        stock,
+        req.user.id
+    ]
+);
 
         return res.status(201).json({
             message: "Vehicle added successfully"
