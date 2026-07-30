@@ -2380,3 +2380,30 @@ test("should not allow purchase when stock is finished", async () => {
 
 });
 });
+
+describe("POST /api/vehicles/:id/restock", () => {
+
+
+                        beforeEach(async () => {
+    await connection.query("DELETE FROM vehicles");
+    await connection.query("DELETE FROM users");
+}); 
+    test("should return 401 if token is not provided", async () => {
+
+        const response = await request(app)
+            .post("/api/vehicles/1/restock")
+            .send({
+                quantity: 10
+            });
+
+
+        expect(response.statusCode).toBe(401);
+
+
+        expect(response.body).toEqual({
+            message: "Access denied. No token provided."
+        });
+
+    });
+
+});
