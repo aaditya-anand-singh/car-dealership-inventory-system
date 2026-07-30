@@ -1577,4 +1577,39 @@ test("should return 400 when minPrice is greater than maxPrice", async () => {
     });
 
 });
+
+
+test("should return 400 when price values are invalid", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password)
+         VALUES (?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+    const response = await request(app)
+        .get("/api/vehicles/search?minPrice=abc&maxPrice=500000")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(400);
+
+    expect(response.body).toEqual({
+        message: "Price values must be valid numbers."
+    });
+
+});
 });
