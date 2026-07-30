@@ -46,6 +46,17 @@ router.post("/register", async (req, res) => {
             });
         }
 
+                const [existingEmail] = await connection.query(
+            "SELECT * FROM users WHERE email = ?",
+            [email]
+        );
+
+        if (existingEmail.length > 0) {
+            return res.status(409).json({
+                message: "Email already exists"
+            });
+        }
+
         // Insert user
         await connection.query(
             "INSERT INTO users(username,email,password) VALUES(?,?,?)",
