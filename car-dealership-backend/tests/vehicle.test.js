@@ -1876,6 +1876,11 @@ test("should update vehicle successfully", async () => {
 
 describe("DELETE /api/vehicles/:id", () => {
 
+                beforeEach(async () => {
+    await connection.query("DELETE FROM vehicles");
+    await connection.query("DELETE FROM users");
+});
+
     test("should return 401 if token is not provided", async () => {
 
         const response = await request(app)
@@ -1888,5 +1893,53 @@ describe("DELETE /api/vehicles/:id", () => {
         );
 
     });
+
+    test("should return 401 if token is invalid", async () => {
+
+    const response = await request(app)
+        .delete("/api/vehicles/1")
+        .set("Authorization", "Bearer invalidToken");
+
+    expect(response.statusCode).toBe(401);
+
+    expect(response.body.message).toBe(
+        "Invalid token."
+    );
+
+});
+
+test("should return 403 if customer tries to delete vehicle", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password)
+         VALUES (?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+    const response = await request(app)
+        .delete("/api/vehicles/1")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(403);
+
+    expect(response.body).toEqual({
+        message: "Access denied. Admins only."
+    });
+
+});
 
 });
