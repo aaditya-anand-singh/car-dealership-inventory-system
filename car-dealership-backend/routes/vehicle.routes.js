@@ -8,7 +8,8 @@ const connection = require("../config/db");
 const {
     searchVehicles,
     updateVehicle,
-    deleteVehicle
+    deleteVehicle,
+    purchaseVehicle
 } = require("../controllers/vehicle.controller");
 
 // ===========================
@@ -199,12 +200,6 @@ router.delete(
 router.post(
     "/:id/purchase",
     verifyToken,
-    async (req, res) => {
-
-        return res.status(200).json({
-            message: "Purchase route working"
-        });
-
-    }
+    purchaseVehicle
 );
 module.exports = router;
