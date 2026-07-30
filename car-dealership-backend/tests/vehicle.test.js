@@ -2097,3 +2097,26 @@ test("should return 404 if vehicle is already deleted", async () => {
 
 });
 });
+
+describe("POST /api/vehicles/:id/purchase", () => {
+                    beforeEach(async () => {
+    await connection.query("DELETE FROM vehicles");
+    await connection.query("DELETE FROM users");
+}); 
+
+    test("should return 401 if token is not provided", async () => {
+
+        const response = await request(app)
+            .post("/api/vehicles/1/purchase");
+
+
+        expect(response.statusCode).toBe(401);
+
+
+        expect(response.body).toEqual({
+            message: "Access denied. No token provided."
+        });
+
+    });
+
+});
