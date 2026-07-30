@@ -24,6 +24,12 @@ router.post("/register", (req, res) => {
         });
     }
 
+    if (!email.includes("@")) {
+        return res.status(400).json({
+            message: "Invalid email format"
+        });
+    }
+
     res.status(201).json({
         message: "User registered successfully"
     });
