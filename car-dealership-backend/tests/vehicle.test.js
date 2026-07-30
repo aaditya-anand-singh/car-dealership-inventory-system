@@ -160,4 +160,45 @@ describe("POST /api/vehicles", () => {
 
 });
 
+test("should return 400 if model is missing", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [admin] = await connection.query(
+        `INSERT INTO users(username,email,password,role)
+         VALUES(?,?,?,?)`,
+        [
+            `admin_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword,
+            "admin"
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: admin.insertId,
+            role: "admin"
+        },
+        process.env.JWT_SECRET
+    );
+
+    const response = await request(app)
+        .post("/api/vehicles")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+            brand: "Toyota",
+            year: 2024,
+            price: 4200000,
+            color: "Black",
+            fuelType: "Diesel",
+            transmission: "Automatic",
+            stock: 5
+        });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.message).toBe("Model is required");
+
+});
+
 });
