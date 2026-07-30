@@ -202,4 +202,16 @@ router.post(
     verifyToken,
     purchaseVehicle
 );
+
+router.post(
+    "/:id/restock",
+    verifyToken,
+    async (req, res) => {
+
+        return res.status(200).json({
+            message: "Restock route working"
+        });
+
+    }
+);
 module.exports = router;
