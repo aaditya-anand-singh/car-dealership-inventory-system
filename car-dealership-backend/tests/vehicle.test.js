@@ -615,6 +615,11 @@ test("should return 400 if stock is negative", async () => {
 
 describe("GET /api/vehicles", () => {
 
+    beforeEach(async () => {
+    await connection.query("DELETE FROM vehicles");
+    await connection.query("DELETE FROM users");
+});
+
     test("should return 401 if token is missing", async () => {
 
         const response = await request(app)
@@ -786,6 +791,68 @@ test("should return all available vehicles", async () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body.length).toBe(2);
+
+});
+
+
+test("should return correct vehicle details", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [customer] = await connection.query(
+        `INSERT INTO users (username, email, password)
+         VALUES (?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+    const brand = `Honda_${Date.now()}`;
+    const model = "City";
+    const year = 2025;
+
+    await connection.query(
+        `INSERT INTO vehicles
+        (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            brand,
+            model,
+            year,
+            1600000,
+            "Blue",
+            "Petrol",
+            "Manual",
+            10,
+            customer.insertId
+        ]
+    );
+
+    const response = await request(app)
+        .get("/api/vehicles")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toHaveLength(1);
+
+    expect(response.body[0].brand).toBe(brand);
+    expect(response.body[0].model).toBe(model);
+    expect(response.body[0].year).toBe(year);
+    expect(Number(response.body[0].price)).toBe(1600000);
+    expect(response.body[0].color).toBe("Blue");
+    expect(response.body[0].fuelType).toBe("Petrol");
+    expect(response.body[0].transmission).toBe("Manual");
+    expect(response.body[0].stock).toBe(10);
 
 });
 
