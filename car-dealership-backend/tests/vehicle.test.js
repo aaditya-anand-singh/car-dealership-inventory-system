@@ -134,4 +134,35 @@ test("should return 403 if user is not admin", async () => {
     expect(response.body.message).toBe("Access denied. Admins only.");
 
 });
+
+
+test("should allow admin user to access protected route", async () => {
+
+    const token = jwt.sign(
+        {
+            id: 1,
+            role: "admin"
+        },
+        process.env.JWT_SECRET
+    );
+
+    const response = await request(app)
+        .post("/api/vehicles")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+            brand: "Toyota",
+            model: "Fortuner",
+            year: 2024,
+            price: 4200000,
+            color: "Black",
+            fuelType: "Diesel",
+            transmission: "Automatic",
+            stock: 5
+        });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.message).toBe("Vehicle route reached");
+
+});
+
 });
