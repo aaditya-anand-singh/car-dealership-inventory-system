@@ -70,15 +70,23 @@ const searchVehicles = async (req, res) => {
 };
 
 const updateVehicle = async (req, res) => {
-
     try {
 
         const { id } = req.params;
 
+        const {
+            brand,
+            model,
+            year,
+            price,
+            color,
+            fuelType,
+            transmission,
+            stock
+        } = req.body;
+
         const [vehicle] = await connection.query(
-            `SELECT id
-             FROM vehicles
-             WHERE id = ?`,
+            "SELECT * FROM vehicles WHERE id = ?",
             [id]
         );
 
@@ -88,15 +96,49 @@ const updateVehicle = async (req, res) => {
             });
         }
 
+        await connection.query(
+            `UPDATE vehicles
+             SET brand=?,
+                 model=?,
+                 year=?,
+                 price=?,
+                 color=?,
+                 fuelType=?,
+                 transmission=?,
+                 stock=?
+             WHERE id=?`,
+            [
+                brand,
+                model,
+                year,
+                price,
+                color,
+                fuelType,
+                transmission,
+                stock,
+                id
+            ]
+        );
+
+        const [updatedVehicle] = await connection.query(
+            "SELECT * FROM vehicles WHERE id = ?",
+            [id]
+        );
+
+        return res.status(200).json({
+            message: "Vehicle updated successfully.",
+            vehicle: updatedVehicle[0]
+        });
+
     } catch (error) {
+        console.error(error);
 
         return res.status(500).json({
             message: "Internal server error."
         });
-
     }
-
 };
+
 
 module.exports = {
     searchVehicles,

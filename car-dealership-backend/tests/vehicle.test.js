@@ -1802,4 +1802,73 @@ test("should return 404 if vehicle does not exist", async () => {
 
 });
 
+
+test("should update vehicle successfully", async () => {
+
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+
+    const [admin] = await connection.query(
+        `INSERT INTO users(username, email, password, role)
+         VALUES (?, ?, ?, ?)`,
+        [
+            `admin_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword,
+            "admin"
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: admin.insertId,
+            role: "admin"
+        },
+        process.env.JWT_SECRET
+    );
+
+    const [vehicle] = await connection.query(
+        `INSERT INTO vehicles
+        (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            "Toyota",
+            "Camry",
+            2024,
+            3200000,
+            "White",
+            "Petrol",
+            "Automatic",
+            5,
+            admin.insertId
+        ]
+    );
+
+    const response = await request(app)
+        .put(`/api/vehicles/${vehicle.insertId}`)
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+            brand: "Honda",
+            model: "City",
+            year: 2025,
+            price: 1800000,
+            color: "Black",
+            fuelType: "Petrol",
+            transmission: "Manual",
+            stock: 10
+        });
+
+    expect(response.statusCode).toBe(200);
+
+    expect(response.body.message).toBe("Vehicle updated successfully.");
+
+    expect(response.body.vehicle.brand).toBe("Honda");
+    expect(response.body.vehicle.model).toBe("City");
+    expect(response.body.vehicle.year).toBe(2025);
+    expect(response.body.vehicle.price).toBe("1800000.00");
+    expect(response.body.vehicle.color).toBe("Black");
+    expect(response.body.vehicle.fuelType).toBe("Petrol");
+    expect(response.body.vehicle.transmission).toBe("Manual");
+    expect(response.body.vehicle.stock).toBe(10);
+
+});
 });
