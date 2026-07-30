@@ -5,6 +5,11 @@ const app = require("../app");
 
 describe("POST /api/auth/register", () => {
 
+    beforeEach(async () => {
+    await connection.query("DELETE FROM vehicles");
+    await connection.query("DELETE FROM users");
+});
+
     test("should register a new user successfully", async () => {
 
         const username = `user_${Date.now()}`;
@@ -197,5 +202,6 @@ describe("POST /api/auth/register", () => {
         expect(response.body.password).toBeUndefined();
 
     });
+
 
 });

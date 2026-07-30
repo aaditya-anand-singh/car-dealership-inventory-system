@@ -5,6 +5,10 @@ const app = require("../app");
 const jwt = require("jsonwebtoken");
 describe("POST /api/auth/login", () => {
 
+    beforeEach(async () => {
+    await connection.query("DELETE FROM vehicles");
+    await connection.query("DELETE FROM users");
+});
     test("should login successfully with valid email and password", async () => {
 
         const username = `user_${Date.now()}`;

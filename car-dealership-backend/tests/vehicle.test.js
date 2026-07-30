@@ -527,8 +527,6 @@ test("should save vehicle in database", async () => {
 
 });
 
-afterAll(async () => {
-    await connection.end();
-});
+
 
 });
