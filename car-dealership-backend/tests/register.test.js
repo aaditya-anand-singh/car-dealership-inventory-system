@@ -62,4 +62,27 @@ test("should return 400 when email format is invalid", async () => {
     expect(response.statusCode).toBe(400);
     expect(response.body.message).toBe("Invalid email format");
 });
+
+test("should return 409 when username already exists", async () => {
+
+    await request(app)
+        .post("/api/auth/register")
+        .send({
+            username: "Aaditya",
+            email: "aaditya1@gmail.com",
+            password: "password123"
+        });
+
+    const response = await request(app)
+        .post("/api/auth/register")
+        .send({
+            username: "Aaditya",
+            email: "aaditya2@gmail.com",
+            password: "password123"
+        });
+
+    expect(response.statusCode).toBe(409);
+    expect(response.body.message).toBe("Username already exists");
+
+});
 });
