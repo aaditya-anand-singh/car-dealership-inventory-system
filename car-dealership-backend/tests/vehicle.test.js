@@ -1644,4 +1644,28 @@ describe("PUT /api/vehicles/:id", () => {
 
     });
 
+    test("should return 401 if token is invalid", async () => {
+
+    const response = await request(app)
+        .put("/api/vehicles/1")
+        .set("Authorization", "Bearer invalidtoken")
+        .send({
+            brand: "Toyota",
+            model: "Camry",
+            year: 2024,
+            price: 3000000,
+            color: "Black",
+            fuelType: "Petrol",
+            transmission: "Automatic",
+            stock: 5
+        });
+
+    expect(response.statusCode).toBe(401);
+
+    expect(response.body).toEqual({
+        message: "Invalid token."
+    });
+
+});
+
 });
