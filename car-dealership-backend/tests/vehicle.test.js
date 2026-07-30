@@ -2452,4 +2452,50 @@ describe("POST /api/vehicles/:id/restock", () => {
 
 });
 
+test("should return 404 if vehicle does not exist", async () => {
+
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+
+
+    const [admin] = await connection.query(
+        `INSERT INTO users(username, email, password, role)
+         VALUES (?, ?, ?, ?)`,
+        [
+            `admin_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword,
+            "admin"
+        ]
+    );
+
+
+    const token = jwt.sign(
+        {
+            id: admin.insertId,
+            role: "admin"
+        },
+        process.env.JWT_SECRET
+    );
+
+
+    const response = await request(app)
+        .post("/api/vehicles/99999/restock")
+        .set(
+            "Authorization",
+            `Bearer ${token}`
+        )
+        .send({
+            quantity: 10
+        });
+
+
+    expect(response.statusCode).toBe(404);
+
+
+    expect(response.body).toEqual({
+        message: "Vehicle not found."
+    });
+
+});
+
 });
