@@ -35,7 +35,11 @@ if (!model) {
     });
 }
 
-
+if (!year) {
+    return res.status(400).json({
+        message: "Year is required"
+    });
+}
 
 await connection.query(
     `INSERT INTO vehicles
