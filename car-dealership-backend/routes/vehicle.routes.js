@@ -67,10 +67,16 @@ router.post(
             }
 
             if (stock === undefined || stock === null) {
-                return res.status(400).json({
-                    message: "Stock is required"
-                });
-            }
+    return res.status(400).json({
+        message: "Stock is required"
+    });
+}
+
+if (stock < 0) {
+    return res.status(400).json({
+        message: "Stock cannot be negative"
+    });
+}
 
             // Duplicate check
             const [existingVehicle] = await connection.query(
