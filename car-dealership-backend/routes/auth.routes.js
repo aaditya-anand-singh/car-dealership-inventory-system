@@ -79,4 +79,41 @@ router.post("/register", async (req, res) => {
 
 });
 
+
+router.post("/login", async (req, res) => {
+
+    try {
+
+        const { email, password } = req.body;
+
+        const [users] = await connection.query(
+            "SELECT * FROM users WHERE email = ?",
+            [email]
+        );
+
+        const user = users[0];
+
+        const isMatch = await bcrypt.compare(
+            password,
+            user.password
+        );
+
+        if (isMatch) {
+            return res.status(200).json({
+                message: "Login successful"
+            });
+        }
+
+    } catch (err) {
+
+        console.error("Login Error:", err);
+
+        return res.status(500).json({
+            message: "Internal Server Error"
+        });
+
+    }
+
+});
+
 module.exports = router;
