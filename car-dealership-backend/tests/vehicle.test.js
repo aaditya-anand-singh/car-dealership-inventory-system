@@ -919,4 +919,52 @@ test("should not return vehicles with zero stock", async () => {
 
 });
 
+test("should return vehicles ordered by brand", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password)
+         VALUES (?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+    await connection.query(
+        `INSERT INTO vehicles
+        (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+        VALUES
+        (?, ?, ?, ?, ?, ?, ?, ?, ?),
+        (?, ?, ?, ?, ?, ?, ?, ?, ?),
+        (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            "Toyota", "Fortuner", 2023, 4200000, "Black", "Diesel", "Automatic", 5, customer.insertId,
+            "Hyundai", "Creta", 2024, 1800000, "White", "Petrol", "Manual", 3, customer.insertId,
+            "Maruti", "Swift", 2022, 800000, "Red", "Petrol", "Manual", 7, customer.insertId
+        ]
+    );
+
+    const response = await request(app)
+        .get("/api/vehicles")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+
+    expect(response.body[0].brand).toBe("Hyundai");
+    expect(response.body[1].brand).toBe("Maruti");
+    expect(response.body[2].brand).toBe("Toyota");
+
+});
+
 });
