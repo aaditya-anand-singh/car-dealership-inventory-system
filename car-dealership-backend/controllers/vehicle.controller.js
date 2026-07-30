@@ -155,7 +155,21 @@ const deleteVehicle = async (req, res) => {
             });
         }
 
+
+        await connection.query(
+            "DELETE FROM vehicles WHERE id = ?",
+            [id]
+        );
+
+
+        return res.status(200).json({
+            message: "Vehicle deleted successfully."
+        });
+
+
     } catch (error) {
+
+        console.error(error);
 
         return res.status(500).json({
             message: "Internal server error."
