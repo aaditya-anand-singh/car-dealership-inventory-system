@@ -1360,4 +1360,79 @@ test("should return vehicles within the given price range", async () => {
     expect(response.body[0].price).toBe("1800000.00");
     expect(response.body[1].price).toBe("2500000.00");
 });
+
+
+test("should return vehicles matching multiple search filters", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password)
+         VALUES (?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+    await connection.query(
+        `INSERT INTO vehicles
+        (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+        VALUES
+        (?, ?, ?, ?, ?, ?, ?, ?, ?),
+        (?, ?, ?, ?, ?, ?, ?, ?, ?),
+        (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            "Toyota",
+            "Camry",
+            2024,
+            2500000,
+            "Black",
+            "Petrol",
+            "Automatic",
+            5,
+            customer.insertId,
+
+            "Toyota",
+            "Corolla",
+            2023,
+            1500000,
+            "White",
+            "Petrol",
+            "Manual",
+            4,
+            customer.insertId,
+
+            "Honda",
+            "City",
+            2023,
+            2500000,
+            "Silver",
+            "Petrol",
+            "Automatic",
+            3,
+            customer.insertId
+        ]
+    );
+
+    const response = await request(app)
+        .get("/api/vehicles/search?brand=Toyota&minPrice=2000000&maxPrice=3000000")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+
+    expect(response.body).toHaveLength(1);
+
+    expect(response.body[0].brand).toBe("Toyota");
+    expect(response.body[0].model).toBe("Camry");
+});
 });
