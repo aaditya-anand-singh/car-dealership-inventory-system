@@ -1,3 +1,16 @@
+//.env file for backend
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=Zaxscd@8
+DB_NAME=car_dealership
+
+JWT_SECRET=your_secret_keynpm test
+
+
+//.env file for frontend
+VITE_API_URL=http://localhost:3000/api
+
+
 # 🚗 Car Dealership Inventory System
 
 
