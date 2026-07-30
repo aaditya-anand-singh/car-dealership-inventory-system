@@ -5,6 +5,16 @@ const searchVehicles = async (req, res) => {
 
 const { brand, model, minPrice, maxPrice } = req.query;
 
+if (
+    minPrice &&
+    maxPrice &&
+    Number(minPrice) > Number(maxPrice)
+) {
+    return res.status(400).json({
+        message: "Minimum price cannot be greater than maximum price."
+    });
+}
+
 let sql = `
     SELECT *
     FROM vehicles
