@@ -59,6 +59,12 @@ if (!transmission) {
     });
 }
 
+if (!stock && stock !== 0) {
+    return res.status(400).json({
+        message: "Stock is required"
+    });
+}
+
 await connection.query(
     `INSERT INTO vehicles
     (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
