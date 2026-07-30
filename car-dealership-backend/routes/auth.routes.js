@@ -18,6 +18,12 @@ router.post("/register", (req, res) => {
         });
     }
 
+    if (!password) {
+        return res.status(400).json({
+            message: "Password is required"
+        });
+    }
+
     res.status(201).json({
         message: "User registered successfully"
     });
