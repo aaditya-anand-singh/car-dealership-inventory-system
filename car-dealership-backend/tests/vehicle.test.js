@@ -468,4 +468,9 @@ test("should return 409 if vehicle already exists", async () => {
 
 });
 
+
+afterAll(async () => {
+    await connection.end();
+});
+
 });

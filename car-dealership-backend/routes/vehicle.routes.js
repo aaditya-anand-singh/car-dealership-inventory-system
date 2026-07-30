@@ -65,6 +65,20 @@ if (!stock && stock !== 0) {
     });
 }
 
+// Duplicate check
+const [existingVehicle] = await connection.query(
+    `SELECT id FROM vehicles
+     WHERE brand = ? AND model = ? AND year = ?`,
+    [brand, model, year]
+);
+
+if (existingVehicle.length > 0) {
+    return res.status(409).json({
+        message: "Vehicle already exists"
+    });
+}
+
+
 await connection.query(
     `INSERT INTO vehicles
     (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
