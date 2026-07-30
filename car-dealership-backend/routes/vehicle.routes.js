@@ -41,6 +41,12 @@ if (!year) {
     });
 }
 
+if (!price) {
+    return res.status(400).json({
+        message: "Price is required"
+    });
+}
+
 await connection.query(
     `INSERT INTO vehicles
     (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
