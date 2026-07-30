@@ -472,6 +472,61 @@ test("should return 409 if vehicle already exists", async () => {
 });
 
 
+test("should save vehicle in database", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [admin] = await connection.query(
+        `INSERT INTO users(username,email,password,role)
+         VALUES(?,?,?,?)`,
+        [
+            `admin_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword,
+            "admin"
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: admin.insertId,
+            role: "admin"
+        },
+        process.env.JWT_SECRET
+    );
+
+    await request(app)
+        .post("/api/vehicles")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+            brand: "Toyota",
+            model: "Fortuner",
+            year: 2024,
+            price: 4200000,
+            color: "Black",
+            fuelType: "Diesel",
+            transmission: "Automatic",
+            stock: 5
+        });
+
+    const [vehicles] = await connection.query(
+        "SELECT * FROM vehicles"
+    );
+
+    expect(vehicles.length).toBe(1);
+
+    expect(vehicles[0].brand).toBe("Toyota");
+    expect(vehicles[0].model).toBe("Fortuner");
+    expect(vehicles[0].year).toBe(2024);
+    expect(Number(vehicles[0].price)).toBe(4200000);
+    expect(vehicles[0].color).toBe("Black");
+    expect(vehicles[0].fuelType).toBe("Diesel");
+    expect(vehicles[0].transmission).toBe("Automatic");
+    expect(vehicles[0].stock).toBe(5);
+    expect(vehicles[0].createdBy).toBe(admin.insertId);
+
+});
+
 afterAll(async () => {
     await connection.end();
 });
