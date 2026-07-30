@@ -1,6 +1,7 @@
 const express = require("express");
-const connection = require("../config/db");
 const bcrypt = require("bcrypt");
+const connection = require("../config/db");
+
 const router = express.Router();
 
 router.post("/register", async (req, res) => {
@@ -9,7 +10,6 @@ router.post("/register", async (req, res) => {
 
         const { username, email, password } = req.body;
 
-        // Validation
         if (!username) {
             return res.status(400).json({
                 message: "Username is required"
@@ -34,9 +34,8 @@ router.post("/register", async (req, res) => {
             });
         }
 
-        // Check duplicate username
         const [existingUser] = await connection.query(
-            "SELECT * FROM users WHERE username = ?",
+            "SELECT id FROM users WHERE username = ?",
             [username]
         );
 
@@ -46,8 +45,8 @@ router.post("/register", async (req, res) => {
             });
         }
 
-                const [existingEmail] = await connection.query(
-            "SELECT * FROM users WHERE email = ?",
+        const [existingEmail] = await connection.query(
+            "SELECT id FROM users WHERE email = ?",
             [email]
         );
 
@@ -57,12 +56,12 @@ router.post("/register", async (req, res) => {
             });
         }
 
-        // Insert user
         const hashedPassword = await bcrypt.hash(password, 10);
-await connection.query(
-    "INSERT INTO users(username,email,password) VALUES(?,?,?)",
-    [username, email, hashedPassword]
-);
+
+        await connection.query(
+            "INSERT INTO users(username,email,password) VALUES(?,?,?)",
+            [username, email, hashedPassword]
+        );
 
         return res.status(201).json({
             message: "User registered successfully"
@@ -70,7 +69,7 @@ await connection.query(
 
     } catch (err) {
 
-        console.error(err);
+        console.error("Registration Error:", err);
 
         return res.status(500).json({
             message: "Internal Server Error"
