@@ -2033,4 +2033,67 @@ test("should delete vehicle successfully by admin", async () => {
 
 });
 
+
+test("should return 404 if vehicle is already deleted", async () => {
+
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+
+    const [admin] = await connection.query(
+        `INSERT INTO users(username, email, password, role)
+         VALUES (?, ?, ?, ?)`,
+        [
+            `admin_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword,
+            "admin"
+        ]
+    );
+
+
+    const [vehicle] = await connection.query(
+        `INSERT INTO vehicles
+        (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            "Honda",
+            "City",
+            2024,
+            1500000,
+            "White",
+            "Petrol",
+            "Manual",
+            3,
+            admin.insertId
+        ]
+    );
+
+
+    const token = jwt.sign(
+        {
+            id: admin.insertId,
+            role: "admin"
+        },
+        process.env.JWT_SECRET
+    );
+
+
+    // First delete
+    await request(app)
+        .delete(`/api/vehicles/${vehicle.insertId}`)
+        .set("Authorization", `Bearer ${token}`);
+
+
+    // Second delete
+    const response = await request(app)
+        .delete(`/api/vehicles/${vehicle.insertId}`)
+        .set("Authorization", `Bearer ${token}`);
+
+
+    expect(response.statusCode).toBe(404);
+
+    expect(response.body).toEqual({
+        message: "Vehicle not found."
+    });
+
+});
 });
