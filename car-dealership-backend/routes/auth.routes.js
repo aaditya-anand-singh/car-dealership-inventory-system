@@ -3,6 +3,15 @@ const express = require("express");
 const router = express.Router();
 
 router.post("/register", (req, res) => {
+
+    const { username, email, password } = req.body;
+
+    if (!username) {
+        return res.status(400).json({
+            message: "Username is required"
+        });
+    }
+
     res.status(201).json({
         message: "User registered successfully"
     });
