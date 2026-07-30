@@ -1045,4 +1045,18 @@ expect(response.body).toEqual({
 
     });
 
+
+    test("should return 401 if token is invalid", async () => {
+
+    const response = await request(app)
+        .get("/api/vehicles/search")
+        .set("Authorization", "Bearer invalid_token");
+
+    expect(response.statusCode).toBe(401);
+
+    expect(response.body).toEqual({
+        message: "Invalid token."
+    });
+
+});
 });
