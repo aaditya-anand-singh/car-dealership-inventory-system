@@ -3,7 +3,7 @@ const connection = require("../config/db");
 const searchVehicles = async (req, res) => {
     try {
 
-        const { brand } = req.query;
+       const { brand, model } = req.query;
 
 let sql = `
     SELECT *
@@ -16,6 +16,11 @@ const values = [];
 if (brand) {
     sql += ` AND brand = ?`;
     values.push(brand);
+}
+
+if (model) {
+    sql += ` AND model = ?`;
+    values.push(model);
 }
 
 sql += ` ORDER BY brand ASC`;
