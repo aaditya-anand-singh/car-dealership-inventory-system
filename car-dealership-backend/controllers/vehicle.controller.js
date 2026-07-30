@@ -1,62 +1,61 @@
 const connection = require("../config/db");
 
 const searchVehicles = async (req, res) => {
+
     try {
 
-const { brand, model, minPrice, maxPrice } = req.query;
+        const { brand, model, minPrice, maxPrice } = req.query;
 
-if (
-    (minPrice && isNaN(Number(minPrice))) ||
-    (maxPrice && isNaN(Number(maxPrice)))
-) {
-    return res.status(400).json({
-        message: "Price values must be valid numbers."
-    });
-}
+        if (
+            (minPrice && isNaN(Number(minPrice))) ||
+            (maxPrice && isNaN(Number(maxPrice)))
+        ) {
+            return res.status(400).json({
+                message: "Price values must be valid numbers."
+            });
+        }
 
-if (
-    minPrice &&
-    maxPrice &&
-    Number(minPrice) > Number(maxPrice)
-) {
-    return res.status(400).json({
-        message: "Minimum price cannot be greater than maximum price."
-    });
-}
+        if (
+            minPrice &&
+            maxPrice &&
+            Number(minPrice) > Number(maxPrice)
+        ) {
+            return res.status(400).json({
+                message: "Minimum price cannot be greater than maximum price."
+            });
+        }
 
-let sql = `
-    SELECT *
-    FROM vehicles
-    WHERE stock > 0
-`;
+        let sql = `
+            SELECT *
+            FROM vehicles
+            WHERE stock > 0
+        `;
 
-const values = [];
+        const values = [];
 
-if (brand) {
-    sql += ` AND brand = ?`;
-    values.push(brand);
-}
+        if (brand) {
+            sql += ` AND brand = ?`;
+            values.push(brand);
+        }
 
-if (model) {
-    sql += ` AND model = ?`;
-    values.push(model);
-}
+        if (model) {
+            sql += ` AND model = ?`;
+            values.push(model);
+        }
 
-if (minPrice) {
-    sql += ` AND price >= ?`;
-    values.push(minPrice);
-}
+        if (minPrice) {
+            sql += ` AND price >= ?`;
+            values.push(Number(minPrice));
+        }
 
-if (maxPrice) {
-    sql += ` AND price <= ?`;
-    values.push(maxPrice);
-}
+        if (maxPrice) {
+            sql += ` AND price <= ?`;
+            values.push(Number(maxPrice));
+        }
 
-sql += ` ORDER BY brand ASC`;
+        sql += ` ORDER BY brand ASC`;
 
-const [vehicles] = await connection.query(sql, values);
-
-return res.status(200).json(vehicles);
+        const [vehicles] = await connection.query(sql, values);
 
         return res.status(200).json(vehicles);
 
@@ -67,8 +66,14 @@ return res.status(200).json(vehicles);
         });
 
     }
+
+};
+
+const updateVehicle = async (req, res) => {
+
 };
 
 module.exports = {
-    searchVehicles
+    searchVehicles,
+    updateVehicle
 };

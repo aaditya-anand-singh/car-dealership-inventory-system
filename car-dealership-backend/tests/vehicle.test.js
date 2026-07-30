@@ -1613,3 +1613,35 @@ test("should return 400 when price values are invalid", async () => {
 
 });
 });
+
+describe("PUT /api/vehicles/:id", () => {
+
+            beforeEach(async () => {
+    await connection.query("DELETE FROM vehicles");
+    await connection.query("DELETE FROM users");
+});
+
+    test("should return 401 if token is missing", async () => {
+
+        const response = await request(app)
+            .put("/api/vehicles/1")
+            .send({
+                brand: "Toyota",
+                model: "Camry",
+                year: 2024,
+                price: 3000000,
+                color: "Black",
+                fuelType: "Petrol",
+                transmission: "Automatic",
+                stock: 5
+            });
+
+        expect(response.statusCode).toBe(401);
+
+        expect(response.body).toEqual({
+            message: "Access denied. No token provided."
+        });
+
+    });
+
+});

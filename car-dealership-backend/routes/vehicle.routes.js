@@ -4,7 +4,15 @@ const router = express.Router();
 const verifyToken = require("../middleware/auth.middleware");
 const isAdmin = require("../middleware/admin.middleware");
 const connection = require("../config/db");
-const { searchVehicles } = require("../controllers/vehicle.controller");
+
+const {
+    searchVehicles,
+    updateVehicle
+} = require("../controllers/vehicle.controller");
+
+// ===========================
+// POST /api/vehicles
+// ===========================
 
 router.post(
     "/",
@@ -79,9 +87,9 @@ router.post(
                 });
             }
 
-            // Duplicate check
             const [existingVehicle] = await connection.query(
-                `SELECT id FROM vehicles
+                `SELECT id
+                 FROM vehicles
                  WHERE brand = ? AND model = ? AND year = ?`,
                 [brand, model, year]
             );
@@ -122,6 +130,7 @@ router.post(
             });
 
         }
+
     }
 );
 
@@ -158,11 +167,25 @@ router.get(
     }
 );
 
+// ===========================
+// GET /api/vehicles/search
+// ===========================
 
 router.get(
     "/search",
     verifyToken,
     searchVehicles
+);
+
+// ===========================
+// PUT /api/vehicles/:id
+// ===========================
+
+router.put(
+    "/:id",
+    verifyToken,
+    isAdmin,
+    updateVehicle
 );
 
 module.exports = router;
