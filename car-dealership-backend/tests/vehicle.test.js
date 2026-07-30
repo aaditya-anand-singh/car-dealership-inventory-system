@@ -1286,4 +1286,78 @@ test("should return vehicles matching the model", async () => {
     expect(response.body[0].brand).toBe("Honda");
     expect(response.body[0].model).toBe("City");
 });
+
+test("should return vehicles within the given price range", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password)
+         VALUES (?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+    await connection.query(
+        `INSERT INTO vehicles
+        (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+        VALUES
+        (?, ?, ?, ?, ?, ?, ?, ?, ?),
+        (?, ?, ?, ?, ?, ?, ?, ?, ?),
+        (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            "Toyota",
+            "Camry",
+            2024,
+            4200000,
+            "Black",
+            "Diesel",
+            "Automatic",
+            5,
+            customer.insertId,
+
+            "Honda",
+            "City",
+            2023,
+            1800000,
+            "White",
+            "Petrol",
+            "Manual",
+            3,
+            customer.insertId,
+
+            "Hyundai",
+            "Creta",
+            2022,
+            2500000,
+            "Silver",
+            "Petrol",
+            "Manual",
+            4,
+            customer.insertId
+        ]
+    );
+
+    const response = await request(app)
+        .get("/api/vehicles/search?minPrice=1500000&maxPrice=3000000")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+
+    expect(response.body).toHaveLength(2);
+
+    expect(response.body[0].price).toBe("1800000.00");
+    expect(response.body[1].price).toBe("2500000.00");
+});
 });
