@@ -13,4 +13,16 @@ describe("POST /api/auth/register", () => {
 
         expect(response.statusCode).toBe(201);
     });
+
+    test("should return 400 when username is missing", async () => {
+    const response = await request(app)
+        .post("/api/auth/register")
+        .send({
+            email: "aaditya@gmail.com",
+            password: "password123"
+        });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.message).toBe("Username is required");
+});
 });
