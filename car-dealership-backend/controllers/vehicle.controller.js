@@ -239,6 +239,21 @@ const restockVehicle = async (req, res) => {
 
         const { id } = req.params;
 
+        const { quantity } = req.body;
+
+
+        if (
+            quantity === undefined ||
+            quantity === null ||
+            quantity <= 0
+        ) {
+
+            return res.status(400).json({
+                message: "Quantity must be greater than 0."
+            });
+
+        }
+
 
         const [vehicle] = await connection.query(
             "SELECT * FROM vehicles WHERE id = ?",
