@@ -196,4 +196,15 @@ router.delete(
     deleteVehicle
 );
 
+router.post(
+    "/:id/purchase",
+    verifyToken,
+    async (req, res) => {
+
+        return res.status(200).json({
+            message: "Purchase route working"
+        });
+
+    }
+);
 module.exports = router;
