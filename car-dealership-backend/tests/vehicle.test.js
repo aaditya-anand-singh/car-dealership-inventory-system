@@ -1977,4 +1977,60 @@ test("should return 404 if vehicle does not exist", async () => {
 
 });
 
+test("should delete vehicle successfully by admin", async () => {
+
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+
+    const [admin] = await connection.query(
+        `INSERT INTO users(username, email, password, role)
+         VALUES (?, ?, ?, ?)`,
+        [
+            `admin_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword,
+            "admin"
+        ]
+    );
+
+
+    const [vehicle] = await connection.query(
+        `INSERT INTO vehicles
+        (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            "Toyota",
+            "Fortuner",
+            2024,
+            4200000,
+            "Black",
+            "Diesel",
+            "Automatic",
+            5,
+            admin.insertId
+        ]
+    );
+
+
+    const token = jwt.sign(
+        {
+            id: admin.insertId,
+            role: "admin"
+        },
+        process.env.JWT_SECRET
+    );
+
+
+    const response = await request(app)
+        .delete(`/api/vehicles/${vehicle.insertId}`)
+        .set("Authorization", `Bearer ${token}`);
+
+
+    expect(response.statusCode).toBe(200);
+
+    expect(response.body).toEqual({
+        message: "Vehicle deleted successfully."
+    });
+
+});
+
 });
