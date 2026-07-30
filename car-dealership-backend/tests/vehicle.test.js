@@ -1031,6 +1031,10 @@ test("should return an empty array when all vehicles are out of stock", async ()
 
 
 describe("GET /api/vehicles/search", () => {
+        beforeEach(async () => {
+    await connection.query("DELETE FROM vehicles");
+    await connection.query("DELETE FROM users");
+});
 
     test("should return 401 if token is missing", async () => {
 

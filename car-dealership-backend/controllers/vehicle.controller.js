@@ -3,12 +3,26 @@ const connection = require("../config/db");
 const searchVehicles = async (req, res) => {
     try {
 
-        const [vehicles] = await connection.query(`
-            SELECT *
-            FROM vehicles
-            WHERE stock > 0
-            ORDER BY brand ASC
-        `);
+        const { brand } = req.query;
+
+let sql = `
+    SELECT *
+    FROM vehicles
+    WHERE stock > 0
+`;
+
+const values = [];
+
+if (brand) {
+    sql += ` AND brand = ?`;
+    values.push(brand);
+}
+
+sql += ` ORDER BY brand ASC`;
+
+const [vehicles] = await connection.query(sql, values);
+
+return res.status(200).json(vehicles);
 
         return res.status(200).json(vehicles);
 
