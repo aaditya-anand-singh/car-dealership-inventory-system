@@ -6,6 +6,15 @@ const searchVehicles = async (req, res) => {
 const { brand, model, minPrice, maxPrice } = req.query;
 
 if (
+    (minPrice && isNaN(Number(minPrice))) ||
+    (maxPrice && isNaN(Number(maxPrice)))
+) {
+    return res.status(400).json({
+        message: "Price values must be valid numbers."
+    });
+}
+
+if (
     minPrice &&
     maxPrice &&
     Number(minPrice) > Number(maxPrice)
