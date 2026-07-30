@@ -2635,4 +2635,90 @@ test("should restock vehicle successfully and increase stock", async () => {
 
 });
 
+test("should increase stock correctly after multiple restock requests", async () => {
+
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+
+
+    const [admin] = await connection.query(
+        `INSERT INTO users(username, email, password, role)
+         VALUES (?, ?, ?, ?)`,
+        [
+            `admin_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword,
+            "admin"
+        ]
+    );
+
+
+    const [vehicle] = await connection.query(
+        `INSERT INTO vehicles
+        (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            "Mahindra",
+            "XUV700",
+            2024,
+            2500000,
+            "Black",
+            "Diesel",
+            "Automatic",
+            5,
+            admin.insertId
+        ]
+    );
+
+
+    const token = jwt.sign(
+        {
+            id: admin.insertId,
+            role: "admin"
+        },
+        process.env.JWT_SECRET
+    );
+
+
+    // First restock
+    const firstResponse = await request(app)
+        .post(`/api/vehicles/${vehicle.insertId}/restock`)
+        .set(
+            "Authorization",
+            `Bearer ${token}`
+        )
+        .send({
+            quantity: 5
+        });
+
+
+    expect(firstResponse.statusCode).toBe(200);
+
+
+
+    // Second restock
+    const secondResponse = await request(app)
+        .post(`/api/vehicles/${vehicle.insertId}/restock`)
+        .set(
+            "Authorization",
+            `Bearer ${token}`
+        )
+        .send({
+            quantity: 10
+        });
+
+
+    expect(secondResponse.statusCode).toBe(200);
+
+
+
+    const [updatedVehicle] = await connection.query(
+        "SELECT stock FROM vehicles WHERE id = ?",
+        [vehicle.insertId]
+    );
+
+
+    expect(updatedVehicle[0].stock).toBe(20);
+
+});
+
 });
