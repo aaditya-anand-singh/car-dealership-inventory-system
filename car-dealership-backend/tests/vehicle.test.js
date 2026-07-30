@@ -1,6 +1,7 @@
 const request = require("supertest");
 const app = require("../app");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const connection = require("../config/db");
 
 describe("POST /api/vehicles", () => {
@@ -25,33 +26,117 @@ describe("POST /api/vehicles", () => {
 
     });
 
-
     test("should return 401 if token is invalid", async () => {
 
-    const response = await request(app)
-        .post("/api/vehicles")
-        .set("Authorization", "Bearer invalid_token")
-        .send({
-            brand: "Toyota",
-            model: "Fortuner",
-            year: 2024,
-            price: 4200000,
-            color: "Black",
-            fuelType: "Diesel",
-            transmission: "Automatic",
-            stock: 5
-        });
+        const response = await request(app)
+            .post("/api/vehicles")
+            .set("Authorization", "Bearer invalid_token")
+            .send({
+                brand: "Toyota",
+                model: "Fortuner",
+                year: 2024,
+                price: 4200000,
+                color: "Black",
+                fuelType: "Diesel",
+                transmission: "Automatic",
+                stock: 5
+            });
 
-    expect(response.statusCode).toBe(401);
-    expect(response.body.message).toBe("Invalid token.");
+        expect(response.statusCode).toBe(401);
+        expect(response.body.message).toBe("Invalid token.");
 
-});
+    });
 
-test("should allow request with valid token", async () => {
+    test("should return 403 if user is not admin", async () => {
+
+        const token = jwt.sign(
+            {
+                id: 1,
+                role: "customer"
+            },
+            process.env.JWT_SECRET
+        );
+
+        const response = await request(app)
+            .post("/api/vehicles")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                brand: "Toyota",
+                model: "Fortuner",
+                year: 2024,
+                price: 4200000,
+                color: "Black",
+                fuelType: "Diesel",
+                transmission: "Automatic",
+                stock: 5
+            });
+
+        expect(response.statusCode).toBe(403);
+        expect(response.body.message).toBe("Access denied. Admins only.");
+
+    });
+
+    test("should create a new vehicle successfully", async () => {
+
+        const hashedPassword = await bcrypt.hash("password123", 10);
+
+        const [admin] = await connection.query(
+            `INSERT INTO users(username,email,password,role)
+             VALUES(?,?,?,?)`,
+            [
+                `admin_${Date.now()}`,
+                `${Date.now()}@gmail.com`,
+                hashedPassword,
+                "admin"
+            ]
+        );
+
+        const token = jwt.sign(
+            {
+                id: admin.insertId,
+                role: "admin"
+            },
+            process.env.JWT_SECRET
+        );
+
+        const response = await request(app)
+            .post("/api/vehicles")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+                brand: "Toyota",
+                model: "Fortuner",
+                year: 2024,
+                price: 4200000,
+                color: "Black",
+                fuelType: "Diesel",
+                transmission: "Automatic",
+                stock: 5
+            });
+
+        expect(response.statusCode).toBe(201);
+        expect(response.body.message).toBe("Vehicle added successfully");
+
+    });
+
+
+    test("should return 400 if brand is missing", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [admin] = await connection.query(
+        `INSERT INTO users(username,email,password,role)
+         VALUES(?,?,?,?)`,
+        [
+            `admin_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword,
+            "admin"
+        ]
+    );
 
     const token = jwt.sign(
         {
-            id: 1,
+            id: admin.insertId,
             role: "admin"
         },
         process.env.JWT_SECRET
@@ -61,7 +146,6 @@ test("should allow request with valid token", async () => {
         .post("/api/vehicles")
         .set("Authorization", `Bearer ${token}`)
         .send({
-            brand: "Toyota",
             model: "Fortuner",
             year: 2024,
             price: 4200000,
@@ -71,128 +155,8 @@ test("should allow request with valid token", async () => {
             stock: 5
         });
 
-    expect(response.statusCode).toBe(200);
-    expect(response.body.message).toBe("Vehicle route reached");
-
-});
-
-test("should attach decoded user to request", async () => {
-
-    const token = jwt.sign(
-        {
-            id: 25,
-            role: "admin"
-        },
-        process.env.JWT_SECRET
-    );
-
-    const response = await request(app)
-        .post("/api/vehicles")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-            brand: "Toyota",
-            model: "Fortuner",
-            year: 2024,
-            price: 4200000,
-            color: "Black",
-            fuelType: "Diesel",
-            transmission: "Automatic",
-            stock: 5
-        });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.body.user.id).toBe(25);
-    expect(response.body.user.role).toBe("admin");
-
-});
-
-
-test("should return 403 if user is not admin", async () => {
-
-    const token = jwt.sign(
-        {
-            id: 1,
-            role: "customer"
-        },
-        process.env.JWT_SECRET
-    );
-
-    const response = await request(app)
-        .post("/api/vehicles")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-            brand: "Toyota",
-            model: "Fortuner",
-            year: 2024,
-            price: 4200000,
-            color: "Black",
-            fuelType: "Diesel",
-            transmission: "Automatic",
-            stock: 5
-        });
-
-    expect(response.statusCode).toBe(403);
-    expect(response.body.message).toBe("Access denied. Admins only.");
-
-});
-
-
-test("should allow admin user to access protected route", async () => {
-
-    const token = jwt.sign(
-        {
-            id: 1,
-            role: "admin"
-        },
-        process.env.JWT_SECRET
-    );
-
-    const response = await request(app)
-        .post("/api/vehicles")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-            brand: "Toyota",
-            model: "Fortuner",
-            year: 2024,
-            price: 4200000,
-            color: "Black",
-            fuelType: "Diesel",
-            transmission: "Automatic",
-            stock: 5
-        });
-
-    expect(response.statusCode).toBe(200);
-    expect(response.body.message).toBe("Vehicle route reached");
-
-});
-
-
-test("should create a new vehicle successfully", async () => {
-
-    const token = jwt.sign(
-        {
-            id: 1,
-            role: "admin"
-        },
-        process.env.JWT_SECRET
-    );
-
-    const response = await request(app)
-        .post("/api/vehicles")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-            brand: "Toyota",
-            model: "Fortuner",
-            year: 2024,
-            price: 4200000,
-            color: "Black",
-            fuelType: "Diesel",
-            transmission: "Automatic",
-            stock: 5
-        });
-
-    expect(response.statusCode).toBe(201);
-    expect(response.body.message).toBe("Vehicle added successfully");
+    expect(response.statusCode).toBe(400);
+    expect(response.body.message).toBe("Brand is required");
 
 });
 
