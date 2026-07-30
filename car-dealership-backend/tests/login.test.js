@@ -72,6 +72,32 @@ test("should return 401 when email is not registered", async () => {
 
 });
 
+test("should return 401 when password is incorrect", async () => {
+
+    const username = `user_${Date.now()}`;
+    const email = `${Date.now()}@gmail.com`;
+    const password = "password123";
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await connection.query(
+        "INSERT INTO users(username,email,password) VALUES(?,?,?)",
+        [username, email, hashedPassword]
+    );
+
+    const response = await request(app)
+        .post("/api/auth/login")
+        .send({
+            email,
+            password: "wrongpassword"
+        });
+
+    expect(response.statusCode).toBe(401);
+    expect(response.body.message).toBe("Invalid email or password");
+
+});
+
+
 afterAll(async () => {
     await connection.end();
 });
