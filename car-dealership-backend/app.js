@@ -1,5 +1,8 @@
 const express = require("express");
 const authRoutes = require("./routes/auth.routes");
+const vehicleRoutes = require("./routes/vehicle.routes");
+
+app.use("/api/vehicles", vehicleRoutes);
 
 const app = express();
 
