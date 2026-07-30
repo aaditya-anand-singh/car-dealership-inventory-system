@@ -514,3 +514,7 @@ Thank you! Please consider it
 
 
 
+## Additional Documentation
+
+- [Test Report](TEST_REPORT.md)
+- [AI Prompt History](PROMPTS.md)
