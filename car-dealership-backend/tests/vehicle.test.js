@@ -856,4 +856,67 @@ test("should return correct vehicle details", async () => {
 
 });
 
+test("should not return vehicles with zero stock", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password)
+         VALUES (?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+    await connection.query(
+        `INSERT INTO vehicles
+        (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
+        VALUES
+        (?, ?, ?, ?, ?, ?, ?, ?, ?),
+        (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            // Available vehicle
+            `Toyota_${Date.now()}`,
+            "Fortuner",
+            2023,
+            4200000,
+            "Black",
+            "Diesel",
+            "Automatic",
+            5,
+            customer.insertId,
+
+            // Out of stock vehicle
+            `Hyundai_${Date.now()}`,
+            "Creta",
+            2024,
+            1800000,
+            "White",
+            "Petrol",
+            "Manual",
+            0,
+            customer.insertId
+        ]
+    );
+
+    const response = await request(app)
+        .get("/api/vehicles")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toHaveLength(1);
+    expect(response.body[0].stock).toBeGreaterThan(0);
+
+});
+
 });
