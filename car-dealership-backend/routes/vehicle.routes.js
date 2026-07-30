@@ -133,7 +133,25 @@ router.get(
     verifyToken,
     async (req, res) => {
 
-        return res.status(200).json([]);
+        try {
+
+            const [vehicles] = await connection.query(
+                `SELECT *
+                 FROM vehicles
+                 WHERE stock > 0`
+            );
+
+            return res.status(200).json(vehicles);
+
+        } catch (err) {
+
+            console.error("Get Vehicles Error:", err);
+
+            return res.status(500).json({
+                message: "Internal Server Error"
+            });
+
+        }
 
     }
 );
