@@ -29,6 +29,14 @@ if (!brand) {
     });
 }
 
+if (!model) {
+    return res.status(400).json({
+        message: "Model is required"
+    });
+}
+
+
+
 await connection.query(
     `INSERT INTO vehicles
     (brand, model, year, price, color, fuelType, transmission, stock, createdBy)
