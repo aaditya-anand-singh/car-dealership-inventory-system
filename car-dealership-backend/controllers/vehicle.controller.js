@@ -3,7 +3,7 @@ const connection = require("../config/db");
 const searchVehicles = async (req, res) => {
     try {
 
-       const { brand, model } = req.query;
+const { brand, model, minPrice, maxPrice } = req.query;
 
 let sql = `
     SELECT *
@@ -21,6 +21,16 @@ if (brand) {
 if (model) {
     sql += ` AND model = ?`;
     values.push(model);
+}
+
+if (minPrice) {
+    sql += ` AND price >= ?`;
+    values.push(minPrice);
+}
+
+if (maxPrice) {
+    sql += ` AND price <= ?`;
+    values.push(maxPrice);
 }
 
 sql += ` ORDER BY brand ASC`;
