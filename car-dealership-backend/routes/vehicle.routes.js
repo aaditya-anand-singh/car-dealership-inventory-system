@@ -188,4 +188,15 @@ router.put(
     updateVehicle
 );
 
+router.delete(
+    "/:id",
+    verifyToken,
+    isAdmin,
+    async (req, res) => {
+        return res.status(200).json({
+            message: "Temporary"
+        });
+    }
+);
+
 module.exports = router;
