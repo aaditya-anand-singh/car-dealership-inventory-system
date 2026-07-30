@@ -1,5 +1,6 @@
 const request = require("supertest");
 const app = require("../app");
+const connection = require("../config/db");
 
 describe("POST /api/auth/register", () => {
     test("should register a new user successfully", async () => {
@@ -84,5 +85,22 @@ test("should return 409 when username already exists", async () => {
     expect(response.statusCode).toBe(409);
     expect(response.body.message).toBe("Username already exists");
 
+});
+test("should save a new user in database", async () => {
+
+    await request(app)
+        .post("/api/auth/register")
+        .send({
+            username: "Aaditya",
+            email: "aaditya@gmail.com",
+            password: "password123"
+        });
+
+    const [rows] = await connection.query(
+        "SELECT * FROM users WHERE username = ?",
+        ["Aaditya"]
+    );
+
+    expect(rows.length).toBe(1);
 });
 });
