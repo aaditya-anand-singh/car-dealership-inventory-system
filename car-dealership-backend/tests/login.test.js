@@ -45,6 +45,19 @@ test("should return 400 when email is missing", async () => {
 
 });
 
+test("should return 400 when password is missing", async () => {
+
+    const response = await request(app)
+        .post("/api/auth/login")
+        .send({
+            email: "test@gmail.com"
+        });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body.message).toBe("Password is required");
+
+});
+
 afterAll(async () => {
     await connection.end();
 });
