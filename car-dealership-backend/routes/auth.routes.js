@@ -4,6 +4,8 @@ const connection = require("../config/db");
 
 const router = express.Router();
 
+// ========================= REGISTER =========================
+
 router.post("/register", async (req, res) => {
 
     try {
@@ -59,7 +61,7 @@ router.post("/register", async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         await connection.query(
-            "INSERT INTO users(username,email,password) VALUES(?,?,?)",
+            "INSERT INTO users(username, email, password) VALUES(?,?,?)",
             [username, email, hashedPassword]
         );
 
@@ -79,6 +81,7 @@ router.post("/register", async (req, res) => {
 
 });
 
+// ========================= LOGIN =========================
 
 router.post("/login", async (req, res) => {
 
@@ -87,17 +90,16 @@ router.post("/login", async (req, res) => {
         const { email, password } = req.body;
 
         if (!email) {
-    return res.status(400).json({
-        message: "Email is required"
-    });
-}
+            return res.status(400).json({
+                message: "Email is required"
+            });
+        }
 
-
-if (!password) {
-    return res.status(400).json({
-        message: "Password is required"
-    });
-}
+        if (!password) {
+            return res.status(400).json({
+                message: "Password is required"
+            });
+        }
 
         const [users] = await connection.query(
             "SELECT * FROM users WHERE email = ?",
@@ -105,6 +107,12 @@ if (!password) {
         );
 
         const user = users[0];
+
+        if (!user) {
+            return res.status(401).json({
+                message: "Invalid email or password"
+            });
+        }
 
         const isMatch = await bcrypt.compare(
             password,
