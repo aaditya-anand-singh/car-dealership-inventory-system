@@ -171,4 +171,20 @@ test("should store hashed password in database", async () => {
     expect(isMatch).toBe(true);
 
 });
+
+test("should not return password in response", async () => {
+
+    const response = await request(app)
+        .post("/api/auth/register")
+        .send({
+            username: `user_${Date.now()}`,
+            email: `${Date.now()}@gmail.com`,
+            password: "password123"
+        });
+
+    expect(response.statusCode).toBe(201);
+
+    expect(response.body.password).toBeUndefined();
+
+});
 });
