@@ -1543,4 +1543,38 @@ test("should perform case-insensitive brand search", async () => {
 
     expect(response.body[0].brand).toBe("Toyota");
 });
+
+test("should return 400 when minPrice is greater than maxPrice", async () => {
+
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
+    const [customer] = await connection.query(
+        `INSERT INTO users(username, email, password)
+         VALUES (?, ?, ?)`,
+        [
+            `customer_${Date.now()}`,
+            `${Date.now()}@gmail.com`,
+            hashedPassword
+        ]
+    );
+
+    const token = jwt.sign(
+        {
+            id: customer.insertId,
+            role: "customer"
+        },
+        process.env.JWT_SECRET
+    );
+
+    const response = await request(app)
+        .get("/api/vehicles/search?minPrice=3000000&maxPrice=1000000")
+        .set("Authorization", `Bearer ${token}`);
+
+    expect(response.statusCode).toBe(400);
+
+    expect(response.body).toEqual({
+        message: "Minimum price cannot be greater than maximum price."
+    });
+
+});
 });
