@@ -202,9 +202,9 @@ test("should generate JWT with correct user id", async () => {
         });
 
     const decoded = jwt.verify(
-        response.body.token,
-        "secretkey"
-    );
+    response.body.token,
+    process.env.JWT_SECRET
+);
 
     expect(decoded.id).toBe(result.insertId);
 
