@@ -1037,10 +1037,11 @@ describe("GET /api/vehicles/search", () => {
         const response = await request(app)
             .get("/api/vehicles/search");
 
-        expect(response.statusCode).toBe(401);
-        expect(response.body).toEqual({
-            message: "Access Denied. No token provided."
-        });
+      expect(response.statusCode).toBe(401);
+
+expect(response.body).toEqual({
+    message: "Access denied. No token provided."
+});
 
     });
 
