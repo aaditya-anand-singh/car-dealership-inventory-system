@@ -200,7 +200,18 @@ const purchaseVehicle = async (req, res) => {
         }
 
 
+        if (vehicle[0].stock <= 0) {
+
+            return res.status(400).json({
+                message: "Vehicle is out of stock."
+            });
+
+        }
+
+
     } catch (error) {
+
+        console.error(error);
 
         return res.status(500).json({
             message: "Internal server error."
